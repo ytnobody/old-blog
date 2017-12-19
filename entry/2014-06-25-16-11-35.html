@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+VZNopeというOpenVZ wrapperの紹介 (1) | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-06-25-15-18-43.html">PostScript::Easyを抹消した話</a>
+    <li class="next">next: <a href="/entry/2014-06-25-16-11-35_2.html">VZNopeというOpenVZ wrapperの紹介 (2)</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>VZNopeというOpenVZ wrapperの紹介 (1)</h1>
+
+<h2>前置きの前置き</h2>
+
+<p>これのブログエントリ楽しみにしてますということをこの前言われましたので、書くことにしました。</p>
+
+<p>背中を押してくれた人、ありがとうございます。</p>
+
+<h2>前置き</h2>
+
+<p>このまえ、<a href="http://blog.ytnobody.net/entry/2014-06-16-18-14-18.html">Dockerに入門してみたけど、僕の用途とは合わないと思った件</a>などという割とでかい釣り針っぽい感じのエントリを公開したわけですが、あの後も少し触っており、部分的に活用はしているものの、開発環境をお手軽に構築できるツールとしてはやはり「コレジャナイ」感を拭いきれずにいます。</p>
+
+<p>そして、僕は結構長い間OpenVZを触りまくってた時期があり、ノウハウも相応に持ち合わせています（と思っている）。じゃあ、Dockerを触って「便利だな」と思った機能をOpenVZにも取り入れたらどうだろう・・・！</p>
+
+<p>そういう割と大雑把で向こう見ずな思想に基づき、<a href="https://github.com/ytnobody/VZNope">VZNope</a>というものを作ったので、紹介したいと思います。ちなみに今のところ非常に雑な作りなので、system()とか呼びまくりです。素直にshellとかで実装すれば良かったかな！w</p>
+
+<h2>VZNopeとは？</h2>
+
+<p>OpenVZに以下の機能を追加するラッパーです。</p>
+
+<ul>
+<li><p>OSテンプレートの管理</p></li>
+<li><p>コンテナ作成手順の簡略化とバージョンコントロール</p></li>
+<li><p>既存機能の一部強化</p></li>
+<li><p>一般ユーザ(not root)向けCLIの提供</p></li>
+</ul>
+
+
+<h2>動作に必要なもの</h2>
+
+<ul>
+<li><p>Ubuntu 14.04 or CentOS 6 (他のLinux distroでも動作するかもしれないけど、確認してません)</p></li>
+<li><p>OpenVZ （<a href="http://openvz.org/Quick_installation">この辺</a>にインストールの仕方かいてます）</p></li>
+<li><p>vzctlやvzlistなどのいわゆるvztools</p></li>
+<li><p>git</p></li>
+<li><p>wget</p></li>
+<li><p>perl-5.12 or later (それ以前ではセットアップツールの動作確認をしてません）</p></li>
+</ul>
+
+
+<h2>入手とインストール</h2>
+
+<pre><code>$ git clone https://github.com/ytnobody/VZNope.git
+$ cd VZNope
+$ ./setup.sh
+</code></pre>
+
+<p>ここまでやったら、ひたすら待ちましょう。</p>
+
+<p>プロンプトが戻ってきたら、あとはこんな感じにvisudoしてあげるといいです。</p>
+
+<pre><code>$ pwd vzn     ### vznのパスをしらべる
+$ sudo visudo ### 'youruser ALL=(root) NOPASSWD: /path/to/vzn' みたいな感じの行を追加する
+</code></pre>
+
+<p>最後に、$HOME/.bash_profileを読み直してやるとオーケーです。</p>
+
+<pre><code>$ . $HOME/.bash_profile
+</code></pre>
+
+<p>無事にインストールができていれば、vznコマンドが実行できるはずです。</p>
+
+<pre><code>~$ vzn
+
+  usage: 
+    vzn [subcommand] [options]
+
+  subcommands:
+    build
+    commit
+    commit-log
+    create
+    destroy
+    enter
+    exec
+    get-image
+    help
+    images
+    images-available
+    list
+    set
+    start
+    stop
+    vznfile
+</code></pre>
+
+<p>こんなかんじ。サブコマンドがいっぱいありますけど、どれもいきなりぶっ叩いても苦しい思いをすることはないはずです。</p>
+
+<h2>利用可能なイメージ（OSテンプレート）を見てみる</h2>
+
+<p>無事にvznが実行できるようになったら、今度はイメージ選びをしたいですね。vzn images-available としてみましょう。</p>
+
+<pre><code>~$ vzn images-available
+        DIST     VERSION      ARCH                               TAG    SIZE            MODIFIED
+----------------------------------------------------------------------------------------------------
+      centos           5       x86                             devel    197M    2014-05-14 02:36
+      centos           5       x86                                      174M    2014-05-14 02:35
+      centos           5    x86_64                             devel    208M    2014-05-14 02:38
+      centos           5    x86_64                                      184M    2014-05-14 02:37
+      centos           6       x86                             devel    234M    2014-05-14 02:31
+      centos           6       x86                                      203M    2014-05-14 02:29
+      centos           6    x86_64                             devel    249M    2014-05-14 02:34
+      centos           6    x86_64                                      215M    2014-05-14 02:32
+    (中略)
+      ubuntu       12.10    x86_64                                      137M    2014-05-14 02:19
+      ubuntu       13.10       x86                                      141M    2014-05-14 02:20
+      ubuntu       13.10    x86_64                                      143M    2014-05-14 02:21
+      ubuntu       14.04       x86                                      145M    2014-05-14 02:11
+      ubuntu       14.04    x86_64                                      147M    2014-05-14 02:13
+----------------------------------------------------------------------------------------------------
+
+note: 
+  'vzn images-available subtypes' to show the list of image subtypes
+  'vzn images-available beta' to show the list of images that is assigned to beta subtype
+</code></pre>
+
+<p>こんな感じで、OS一覧がとれます。</p>
+
+<h2>コンテナを作ってみよう</h2>
+
+<p>コンテナをつくるコマンドは vzn createです。書式はこんな感じ。コンテナIDはOpenVZの許容するコンテナIDとしての数値で指定してください。</p>
+
+<pre><code>vzn create [コンテナID] [ディストロ名（省略時は最新版）] [オプション]
+</code></pre>
+
+<p>例えば、コンテナID101にcentosの最新版をいれたい場合は、こんな感じです。</p>
+
+<pre><code>vzn create 101 centos
+</code></pre>
+
+<p>これだけ。OpenVZを多少かじったことのある方ならわかると思いますが、書式が大幅に短縮されているのがわかると思います。</p>
+
+<p>ちなみにコンテナのIPアドレスは、ホストIPを元に機械的に割り当てられますが、それが困るという方もいると思います。そんな時は --ip オプションを使います。</p>
+
+<pre><code>vzn create 101 centos --ip 10.20.10.101
+</code></pre>
+
+<p>また、ホスト名についても、とくに指定がなければ適当につけられてしまうのですが、--name オプションで明示的に指定することができます。</p>
+
+<pre><code>vzn create 101 centos --name www101.oreore
+</code></pre>
+
+<p>もし32bitなイメージを使いたい場合、--arch オプションでx86を指定すると実現可能です。</p>
+
+<pre><code>vzn create 101 centos --arch x86
+</code></pre>
+
+<p>あと、OSバージョンを指定したい(例えばcentos4とかを使いたい！みたいな状況)場合は、</p>
+
+<pre><code>vzn create 101 centos@4
+</code></pre>
+
+<p>のように、[ディストロ名]@[バージョン]とすればよいです。</p>
+
+<h2>コンテナを起動しよう</h2>
+
+<p>コンテナを起動するのはとても簡単で、 vzn start コマンドで行います。</p>
+
+<pre><code>vzn start [コンテナIDまたはホスト名]
+</code></pre>
+
+<p>例えば、コンテナIDが101のコンテナをブートするには、</p>
+
+<pre><code>vzn start 101
+</code></pre>
+
+<p>とすればできますし、ホスト名がwwwならば</p>
+
+<pre><code>vzn start www
+</code></pre>
+
+<p>でwwwというコンテナがブートします。</p>
+
+<p>※ <a href="/entry/2014-06-25-16-11-35_2.html">(2)に続く</a></p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/b32.4S525ZUDWPTZFMHFUKBQ.html">仮想環境</a></li>
+      <li><a href="/tag/openvz.html">openvz</a></li>
+      <li><a href="/tag/VZNope.html">VZNope</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-06-25 19:24</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-06-26 16:55</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+様々な麻疹を発症して得たもの | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-04-28-18-50-48.html">2万円くらいでソーラーシステム自作してみたけど、今のところ思ったほど捗っていない件</a>
+    <li class="next">next: <a href="/entry/2014-05-28-16-09-44.html">ubuntuにshellinaboxというものをインストールしたけど即刻削除したという話</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>様々な麻疹を発症して得たもの</h1>
+
+<p>これまで僕は、いくつか麻疹的な傾向をもって、いくつかのオープンソースなプロダクトを公開してきた。</p>
+
+<p>このエントリでは、そんな麻疹的傾向のプロダクトといきさつを簡単に紹介しつつ、それらを開発/公開することで得たものを大まかに共有していこうと思う（人はそれを「オープンソース・プロダクトの法要」などと呼ぶかもしれないが、今もって実戦投入されている物もあったりするので、決して法要的なものでは『ない』）。</p>
+
+<p>なお、紹介の順序は、時系列でもお気に入り順でもなく、思い出した順である。</p>
+
+<h2>Testament</h2>
+
+<p><a href="https://github.com/testament-testing-env/Testament">Testament on github</a></p>
+
+<p>これは、いまやすっかり大物となってしまった、moznionという若者との共同作品である。開発も『泥酔ハッカソン』などの最高なハックイベントなどを通じて行われていた。</p>
+
+<p>何をするものかというと、sparcやia64のようなアーキテクチャ上でのPerlモジュールのテストを支援するもの（というか環境構築ツール）であり、当時ユニットテストに対して並々ならぬ情熱を注いでいたmoznionが、某桧舞台で発表題材の一部として取り上げていた。</p>
+
+<p>技術的にはqemuのフロントエンドツールであり、コマンド一発でOpenBSDなどの仮想環境が構築できる。アーキテクチャもある程度指定可能で、qemuがサポートしている物であれば、大体利用できる（対応osによる）。</p>
+
+<p>しかしながら、現在ではこのプロジェクトはすっかり沈静化しており、その原因は以下のとおり割と明らさまである。</p>
+
+<ol>
+<li><p>VagrantやDockerがあるのでTestamentを使う必要が無い</p></li>
+<li><p>ターゲットがものすごくレアなわりに開発労力がすさまじい</p></li>
+</ol>
+
+
+<p>なお、このプロジェクトを通じて得た知見としては、以下のようなものがある。</p>
+
+<ol>
+<li><p>需要はなさそうだが、気になっている人間は結構いた（事実、<a href="https://github.com/ytnobody/Testament">大元のプロジェクト</a>にはスターが7つもついている！）</p></li>
+<li><p>VagrantやDockerは使いやすかった</p></li>
+<li><p>qemuでは、2GBを越えるメモリ割り当てを行うには64bitなホストOSでなくてはならない</p></li>
+<li><p>マイナーなアーキテクチャーのテストは実機でやった方がよい</p></li>
+<li><p>OpenBSDはシンプルなので、仮想環境向けには使いでが良い</p></li>
+<li><p>自分一人で作るよりも完成度の高い物ができたし、楽しい。</p></li>
+</ol>
+
+
+<h2>Nephia</h2>
+
+<p><a href="https://github.com/nephia/">Nephia on github</a></p>
+
+<p>ミニサイズなWAFという触れ込みで、様々な方々にご協力をいただきつつ、開発・公開したものである。実際上記のリンクを見ても、様々なモジュールが関係しているのがわかると思う。</p>
+
+<p>さて、Nephiaというのは当初、「JSON-APIを楽ちんに作る君」的なポゼッションを目指して開発したものであった。DSLを推奨しており（というかDSLしかない）、コントローラメソッドの返り値の型を見て、JSONで出力したり、生のレスポンスを返したりした。</p>
+
+<p>しかし、内部構造があまりにもカオスとの評判から、それまでNephiaと呼ばれていたデジタルデブリをPrimalNephiaという名前に移し、新しくNephiaを作り直した。それはマイクロコア・アーキテクチャとも呼べる代物であり、拡張性が高く、魅力的に見えた。</p>
+
+<p>だが、あまりにも拡張性が高すぎて、ドキュメンテーションが分散してしまい、およそ一見さんが利用できるような状況とは言い難い。一応個々のプラグインにはドキュメンテーションが整備されているので、使えないわけではないが、やはり体験的には苦しいものがあると思う。</p>
+
+<p>反面、『メタ』なWAFと位置づけて見てみると、上記の分散指向は一気に利点へと変貌する。つまりNephiaは『オレオレWAFツクール』だったんだよ（迫真）！！！！</p>
+
+<p>このような何とも捉えどころの無い代物ではあるけど、実は個人のプロジェクトでは結構便利に活用している。例えば現在開発途上の<a href="http://rainview.ytnobody.net/">Rainview</a>というwebアプリも、このNephiaを使って<a href="https://github.com/ytnobody/Rainview">構築されている</a>。セットアップフレーバーも何種類かあるが、僕は<a href="https://github.com/nephia/Nephia-Setup-Plugin-Relax">Nephia::Setup::Plugin::Relax</a>を愛用している。このセットアップフレーバーこそがWAFと呼べるものだったのではないか。</p>
+
+<p>さて、このプロダクトから得た知見は以下のようなものである。</p>
+
+<ol>
+<li><p>不節操なDSLは人を殺す。クラスメソッドとインスタンスメソッドを使って人にやさしくしよう。</p></li>
+<li><p>驚き最小の法則はすばらしい。</p></li>
+<li><p>WAFというものは基本的に「お仕着せ」すべき立ち位置の物である。</p></li>
+<li><p>WAFというものは『Router』『セットアップスクリプト』『コンテキスト』の出来で9割くらい使いやすさが決まってくる。</p></li>
+<li><p>一緒に作ってくれる仲間がいると、とても捗るし、楽しい。</p></li>
+</ol>
+
+
+<h2>Otogiri</h2>
+
+<p><a href="https://github.com/ytnobody/Otogiri">Otogiri on github</a></p>
+
+<p>これについては、麻疹ドリブンで作ったわけでは無いけれど、ORMと呼ばれるものは大抵麻疹の類から発生するものらしいので、ここに列挙しておく。</p>
+
+<p>そもそも僕は業務でもプライベートでもTengという最高便利なORMを使っているわけだが、こいつの唯一の弱点として、Schemaクラスの存在が挙げられる。シンプルな話、DB内の特定テーブルの情報をとってくるためだけに、わざわざアプリケーション側でスキーマを定義する必要があるわけで、頻繁なテーブル変更（年に3回以上のテーブル定義の追加・変更は頻繁であるという認識）はつまり、頻繁なスキーマ変更を伴う。もちろん、Teng::Schema::Dumperのような自動生成ツールもあったりするわけだが、カラムの型定義にはマジックナンバーが採用されているので、お世辞にも可読性が高いなどとは言えないし、Inflate/Deflateの定義がある時のことを考えると、自動生成も微妙というケースが多々ある。</p>
+
+<p>上記のような不満から、僕は「そもそもスキーマなんてなくても使える『ORM的な何か』があれば、それで充分じゃないか」と思い立ち、クエリビルダーであるSQL::Makerと、数多あるDBI拡張の中でもとりわけ使いでの良かったDBIx::Sunnyを組み合わせて、このOtogiriを開発・公開した。</p>
+
+<p>自ら主催するMachida.pmでこのOtogiriについて発表したが、概ねご好評いただいた様子だった。また、共同で開発してくれているtsucchiさんの力により、プラグイン機構と各種ユーティリティ（プラグインとして提供されている）がリリースされたりもした。</p>
+
+<p>前述のNephiaのセットアップフレイバーの１つであるRelaxにも組み込んだし、__papix__君によってReplyから簡単に使えるようなReply::Plugin::ORMがリリースされたりと、本当に恵まれたプロダクトだと思う。</p>
+
+<p>最近では、某気象関連のプロダクトで、設定移行作業にこのOtogiriを利用した。およそ200万あるレコードを高速に移行する必要が有り、そのままでは速度が伸び悩んでいたため、Otogiri::Plugin::BulkInsertを作って利用した。これは先ほどリリースしたので、cpanmでよしなに利用可能である。</p>
+
+<p>このプロダクトを開発・公開した結果得られた知見は以下のようなものである。</p>
+
+<ol>
+<li><p>DBスキーマの運用コストを意識できた。</p></li>
+<li><p>MySQLやPostgreSQLを活用した最近のテスト手法を復習できた。</p></li>
+<li><p>メソッドを追加する系のプラグイン機構はExporterで十分そうだと思った。</p></li>
+<li><p>シンプルなプロダクトは使いやすいという認識の再確認ができた。</p></li>
+<li><p>仲間がいると心強い。</p></li>
+</ol>
+
+
+<h2>まとめ</h2>
+
+<p>要するに、自分にそこそこの力があるなら、あとは『やりたいこと』と『仲間』がいれば、それなりの成果を残すことができる、ということです。</p>
+
+<p>少なくとも上記のうち、Otogiriはとても役に立っているし、作ってよかったと思っています。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/memo.html">memo</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-05-26 13:39</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-05-26 13:41</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

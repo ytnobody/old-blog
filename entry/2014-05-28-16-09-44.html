@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+ubuntuにshellinaboxというものをインストールしたけど即刻削除したという話 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-05-26-12-11-49.html">様々な麻疹を発症して得たもの</a>
+    <li class="next">next: <a href="/entry/2014-05-31-11-47-33.html">Otogiri-0.11 has been released</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>ubuntuにshellinaboxというものをインストールしたけど即刻削除したという話</h1>
+
+<p>ちょっと作りたい物ができたので、webブラウザで動くターミナルエミュレータがほしいなーという話になりました。</p>
+
+<p>で、みつけたのが<a href="https://code.google.com/p/shellinabox/">shellinabox</a>という代物。よく見ると、debパッケージも配布されていたので、そのままインストール。</p>
+
+<p>ドキュメントを見るかぎりでは、このまま http://localhost:4200 にアクセスすればshellが見えるっぽい感じなんだけど、どうもうまくいかない。ERR_SSL_VERSION_OR_CIPHER_MISMATCHというエラーが出ている。SSL証明書に問題がある模様。</p>
+
+<h2>そうだ、SSL証明書を自作しよう</h2>
+
+<p>色々調べてみると、<a href="https://code.google.com/p/shellinabox/wiki/shellinaboxd_man">ここのコメント欄</a>に、同じ状況にに出くわした人物がいた様子。その人は以下のような感じで対処したようだ。</p>
+
+<pre><code># openssl genrsa -des3 -out server.key 1024 
+# openssl req -new -key server.key -out server.csr 
+# cp server.key server.key.org 
+# openssl rsa -in server.key.org -out server.key 
+# openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt 
+# cat server.crt server.key &gt; certificate.pem 
+# shellinabox
+</code></pre>
+
+<p>実際のところ、このコマンドはroot権限で、/var/lib/shellinabox 配下で実行する必要があったし、最後のコマンドは shellinabox ではなく、shellinaboxd だった。</p>
+
+<h2>でもコレジャナイ</h2>
+
+<p>実際上記の方法でブラウザからターミナルエミュレータが実現できていた。しかし、コレジャナイ。なぜか。それは、webブラウザにアクセスしたときに、/bin/login がデフォルトで実行されるためである。</p>
+
+<p>まあ考えなくてもこの仕様については当たり前だなーって思ったけど、任意のプログラムの子プロセスとして実行できるとうれしかった。そもそも今回の要件がおかしいのだ。</p>
+
+<h2>で結局何を作りたいの</h2>
+
+<p>あらかじめ定義されたスクリプトを、ボタン一発で実行できるやつを作りたい。「あっそれcapi（あーあーきーこーえーなーいー</p>
+
+<p>実際のところ、デプロイツールっぽいけど、そういうのとはちょっと違うんだなぁこれが。</p>
+
+<p>さて、本当に実現できるのかなw</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/ubuntu.html">ubuntu</a></li>
+      <li><a href="/tag/linux.html">linux</a></li>
+      <li><a href="/tag/memo.html">memo</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-05-28 16:24</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-05-28 16:25</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

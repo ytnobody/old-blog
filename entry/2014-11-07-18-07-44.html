@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Docker + nginx + td-agent + bigqueryで構築するログ集計機能付きhttp-proxy | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-11-06-18-42-10.html">Google Container Engine(GKE)が発表されたので、早速試してみた</a>
+    <li class="next">next: <a href="/entry/2014-11-09-09-25-05.html">tutumでできるwebapp冗長化構成</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Docker + nginx + td-agent + bigqueryで構築するログ集計機能付きhttp-proxy</h1>
+
+<p>絶賛Docker期まっ只中のytnobodyです。</p>
+
+<p>さて今日は、当ブログの分析を下支えしてくれている<a href="https://cloud.google.com/bigquery/">Google BigQuery</a>に纏わる話題です。</p>
+
+<h2>コンテナは立てた。アクセスログは、どうする？</h2>
+
+<p>基本的にコンテナのストレージ空間（って表現は微妙？）は揮発的で、一旦コンテナを削除したら、当然ですけどコンテナの中に入れていたファイルたちは全部消滅します。当然nginxのアクセスログなんかもそうです。そんなわけで、どこかにログを逃しておかないと、後々の分析や調査に利用できないわけですね。</p>
+
+<p>そこで、ログ転送装置であるところのtd-agent(いわゆるfluentd)を使って、ログをBigQueryに蓄積していくことにしました。</p>
+
+<h2>「でも、手順が煩雑なんでしょ？」</h2>
+
+<p>というようなことを全部受け持ってくれるDocker imageを作りました。→<a href="https://registry.hub.docker.com/u/ytnobody/docker-nginx-bigquery/">ytnobody/docker-nginx-bigquery</a></p>
+
+<p>このエントリでは、docker-nginx-bigqueryをdocker runする所まで大まかに解説していきます。</p>
+
+<p>ちなみにコンテナのシステムtimezoneはJSTに変更済みです。</p>
+
+<h2>予めやっておく必要のあること</h2>
+
+<p>とりあえずGoogle Cloud Platfolmを利用開始しておきましょう。そして、プロジェクトを１つ作っておくと良いです。</p>
+
+<p>あと、プロジェクトでBigQueryを利用できるようにしておきましょう。</p>
+
+<p>そして、gcloudとbqコマンドを使えるようにしておきましょう。ついでに適切な名称のデータセットも用意しておいてください。</p>
+
+<h2>ログを貯めこむテーブルを作る</h2>
+
+<p>手始めに、以下のような内容でschema.jsonというファイルを作りましょう。</p>
+
+<pre><code>[
+  { "name": "time",    "type": "timestamp" },
+  { "name": "remote",  "type": "string"  },
+  { "name": "host",    "type": "string"  },
+  { "name": "user",    "type": "string"  },
+  { "name": "method",  "type": "string"  },
+  { "name": "path",    "type": "string"  },
+  { "name": "code",    "type": "integer" },
+  { "name": "size",    "type": "integer" },
+  { "name": "referer", "type": "string" },
+  { "name": "agent",   "type": "string" }
+]
+</code></pre>
+
+<p>そんでもって、以下のようなコマンドを実行しましょう。</p>
+
+<pre><code>$ bq mk -t your-project-id:your-dataset.access_log schema.json
+</code></pre>
+
+<p>これでテーブルが出来ました。</p>
+
+<h2>td-agentがBigQueryにアクセスするための秘密鍵を手に入れる</h2>
+
+<p><a href="https://console.developers.google.com/">Google Developers Console</a>で、OAuth Private Keyを作成しましょう・・・とはいえ、僕ここの解説するのメンドクサイんで、<a href="https://developers.google.com/console/help/new/#generatingoauth2">googleのドキュメント</a>見ながら鍵を入手してください（無責任</p>
+
+<p>なんとか.p12 というファイルが秘密鍵なので、頑張って入手してくださいね（ほんと無責任</p>
+
+<h2>設定や秘密鍵を閉じ込めたプライベートなgitレポジトリを用意する</h2>
+
+<p>以下のような構造のgitレポジトリを用意し、<a href="https://bitbucket.org/">bitbucket</a>あたりのプライベートなレポジトリに入れておきましょう。</p>
+
+<pre><code>./
+├── bigquery-key.p12 (OAuth client private key for GCE / fixed filename)
+├── bigquery.rc (Specify environment values / fixed filename)
+└── nginx
+    └── *.conf (virtual host configuration)
+</code></pre>
+
+<p>ざっくり解説しますね。</p>
+
+<p><code>./bigquery-key.p12</code>というのが、さっき作ってもらったGCEの秘密鍵です。ファイル名を書き換えて、これと全く同じ名前にしてください。</p>
+
+<p><code>./nginx/*.conf</code>には、nginxのバーチャルホストの設定を置いといてください。</p>
+
+<p><code>./bigquery.rc</code>というのは、環境変数設定スクリプトだと思ってください。内容は以下のようなものとしてください。</p>
+
+<pre><code>export BIGQUERY_EMAIL=xxxxxxxxxx@developer.gserviceaccount.com
+export BIGQUERY_PROJECT=your-projectid-123
+export BIGQUERY_DATASET=your-dataset
+export BIGQUERY_TABLE=access_log
+</code></pre>
+
+<p><code>BIGQUERY_EMAIL</code>には、秘密鍵に付与されるメールアドレスを、<code>BIGQUERY_PROJECT</code>,<code>BIGQUERY_DATASET</code>,<code>BIGQUERY_TABLE</code>にはそれぞれ、GCPのプロジェクトID,データセット名,テーブル名を設定してください。</p>
+
+<p>ここまで出来たら、忘れずに<code>git push</code>しておきましょう。</p>
+
+<h2>コンテナを起こす</h2>
+
+<p>以下のようなコマンドでコンテナを起こしてみましょう。（適切なプライベートレポジトリURLを指定してくださいね？）</p>
+
+<pre><code>$ docker run \
+  -e CONF_REPO=https://username:password@gitdomain/path/to/YourPrivRepo.git \
+  -p 80:80 \
+  -d ytnobody/docker-nginx-bigquery
+</code></pre>
+
+<p>あとは適宜リクエストを投げ込んであげると、大体5分位でBigQueryにアクセスログが投げ込まれます。</p>
+
+<p>これでログ解析を雑に実施できますね！</p>
+
+<h2>BigQueryを２週間ほどつかってみた感想</h2>
+
+<p>基本的に不満らしい不満はそこまでないんですけど、時折Google側のAPIが500返すせいで、ログがうまく投げ込めないケースがあったりしますね。今回のコンテナにはリトライする設定をtd-agent.confに仕込んであるのですが、それでも取りこぼしはわずかに発生しているように見受けられます。</p>
+
+<p>どうしても１件もログを落としたくない方は、別途対策が必要かと思います。あくまで「雑にログ解析する」用途だと認識しておくとハッピーになれるんじゃないでしょうか。</p>
+
+<h2>追記</h2>
+
+<p>bigquery側の取りこぼしの件、改めてログ件数数え直したりしてみましたけど（弱小ブログだからできる）、結果としては「取りこぼしていない」というところに落ち着きそうです。</p>
+
+<blockquote class="twitter-tweet" lang="en"><p>例のbigqueryの件、だいたいbigquery側っぽいという切り分けはできたけど、もう少し定量観測して、記事を改めたい。</p>&mdash; あずまさとし@相模 (@ytnobody) <a href="https://twitter.com/ytnobody/status/531863704418394112">November 10, 2014</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+
+<blockquote class="twitter-tweet" lang="en"><p>とりあえずim.kayacにエラー流して生活してみよう</p>&mdash; あずまさとし@相模 (@ytnobody) <a href="https://twitter.com/ytnobody/status/531863854230564866">November 10, 2014</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+
+<blockquote class="twitter-tweet" lang="en"><p>たいてい 500 backend error が出ていて、適切にretryされていたし、僕が「取りこぼしてるように見受けられる」って書いた部分も、勘違いの可能性が濃厚だなぁ・・・</p>&mdash; あずまさとし@相模 (@ytnobody) <a href="https://twitter.com/ytnobody/status/531864168996286465">November 10, 2014</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+<p>という状況です。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/nginx.html">nginx</a></li>
+      <li><a href="/tag/docker.html">docker</a></li>
+      <li><a href="/tag/fluentd.html">fluentd</a></li>
+      <li><a href="/tag/td-agent.html">td-agent</a></li>
+      <li><a href="/tag/BigQuery.html">BigQuery</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-11-07 18:56</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-11-11 02:46</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

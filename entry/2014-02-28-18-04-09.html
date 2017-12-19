@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Vector::QRCode::IntoPDFというモジュールを作った | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-01-06-15-38-35.html">Mishima.pm #0 に行ってきたお話</a>
+    <li class="next">next: <a href="/entry/2014-03-11-11-44-05.html">TwitterのAPIKey新規取得にモバイルの連絡先が必要になっていたので攻略する</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Vector::QRCode::IntoPDFというモジュールを作った</h1>
+
+<p>PDFにベクター形式でQRCodeを貼り付けるようなことをしたかったんですけど、なんか<a href="http://phpqrcode.sourceforge.net/examples/index.php?example=201">PHPにはsvgで出力できる物</a>があるらしく（uzullaさんに教えていただきました。ありがとうございます）、Perlでそういうことする物も<a href="https://metacpan.org/pod/PostScript::Barcode">ないわけではなかった</a>んですね。</p>
+
+<p>でもMoose依存いやだし、そもそもPostScriptは中間処理につかうような物なので、もうそのままベタッとQRコードを貼り付ける感じのイメージにそぐわないし、ほかにももう少し調べてみたんですけど、「結局それラスタライズされるじゃん？」っていうのばかりだったので、とりあえず自分で実装してみました。</p>
+
+<ul>
+<li><a href="https://metacpan.org/pod/release/YTURTLE/Vector-QRCode-IntoPDF-0.01/lib/Vector/QRCode/IntoPDF.pm">Vector::QRCode::IntoPDF - A module to append QRCode as vector data into PDF - metacpan.org</a></li>
+</ul>
+
+
+<p>使い方はSYNOPSISのまんまなんで割愛するとして、内部でどういうことをしてるかザックリ説明していきたいとおもいます。</p>
+
+<h2>1. Text::QRCodeでQRCodeのデータを用意する</h2>
+
+<p><a href="https://metacpan.org/pod/Text::QRCode">Text::QRCode</a>というグッジョブなモジュールが世の中には既にあって、これを使うと二次元の配列リファレンスとしてQRCodeの符号化データが手に入ります。</p>
+
+<h2>2. PostScript::Simpleを使って、EPS形式でQRCodeを出力する</h2>
+
+<p>ここが案外思いつかなかったところなんですけど、<a href="https://metacpan.org/pod/PostScript::Simple">PostScript::Simple</a>というモジュールを使うと、EPS形式で任意の図形をファイルに出力できるんですね。EPS形式っていうのは要するにベクターを表現するテキストデータなので、これで任意の図形（つまりQRCode）を形成してやると良いのだろうなーと考え、利用しました。</p>
+
+<p>具体的には、PostScript::Simpleのboxメソッドをバカスカぶっ叩き、小さな塗りつぶし四角形を並べてQRCodeを形成してる具合です。非常に泥臭い方法ですね。</p>
+
+<h2>3. できたEPSデータをPostScript::Convertに食わせて、QRコードだけが入ってるPDFファイルを出力する</h2>
+
+<p><a href="https://metacpan.org/pod/PostScript::Convert">PostScript::Convert</a>ってのをつかうと、わりと簡単にEPSデータからPDFを出力できるんで、遠慮なく使いました。便利です。</p>
+
+<h2>4. QRコードを貼り付ける先のPDFファイルをPDF::API2で読み込む</h2>
+
+<p><a href="https://metacpan.org/pod/PDF::API2">PDF::API2</a>という、PerlでPDFを扱うときの鉄板（だとおもう）モジュールがあるので、これをつかって、貼り付け先となるPDFファイルを読み込んでおきます。</p>
+
+<h2>5. 3でできたPDFファイルもPDF::API2で読み込む</h2>
+
+<p>貼り付けたいQRコードの入ったPDFファイルもPDF::API2で読み込んでおきます。</p>
+
+<h2>6. ページと座標を指定して、QRコードを貼り付ける</h2>
+
+<p>PDF::API2のimportPageIntoFormとか, PDF::API2::Pageのgfxメソッドとかを駆使して、なんかうまいことQRコードを貼り付けることに成功しました。</p>
+
+<p>正直ここんとこの説明はだいぶ面倒なので、<a href="https://github.com/ytnobody/Vector-QRCode-IntoPDF/blob/master/lib/Vector/QRCode/IntoPDF.pm#L44">この辺(44～47行目)</a>を見ると良さそうかもしれません（雑ですいません）。</p>
+
+<h2>実はVector::QRCode::EPSというものを作っていた</h2>
+
+<p>今回のモジュールを作るために、<a href="https://metacpan.org/pod/Vector::QRCode::EPS">Vector::QRCode::EPS</a>というモジュールを直前にリリースしておりました。</p>
+
+<p>こいつは上述の手順のうち、1～2を担当してくれています。Vector::QRCode::IntoPDFは3～6までを担当しており、一応分業しているというかんじです。</p>
+
+<p>というわけで、使う機会があれば使ってみてください。それで気にくわない箇所とかありましたら、<a href="https://github.com/ytnobody/Vector-QRCode-IntoPDF">github</a>にp-rなりissueなり送ってくれるとうれしいです。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-02-28 18:50</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-02-28 18:50</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

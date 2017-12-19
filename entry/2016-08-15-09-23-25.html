@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Microsoft Cognitive ServicesのFace APIをPerlから使ってみる | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2016-08-10-10-04-23.html">救急車に運ばれて熱中症と診断されたのでレポート</a>
+    <li class="next">next: <a href="/entry/2016-08-17-00-47-42.html">エラーで帰ってきてしまったメールの解析</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Microsoft Cognitive ServicesのFace APIをPerlから使ってみる</h1>
+
+<p>どーも、わいとんです。</p>
+
+<p>近頃、業務の延長線上の分野として、顔のパーソナライズ認識、及びそれらのリレーショナルな利用について興味が湧いております。</p>
+
+<h2>「顔画像のパーソナライズ認識とリレーショナルな利用」の例</h2>
+
+<p>例えばFacebookやvk.comなどのような実名SNSでは、概ね以下のような情報を登録するように促されることでしょう。</p>
+
+<ul>
+<li>姓名</li>
+<li>性別</li>
+<li>生年月日</li>
+<li>居住地</li>
+<li>興味のあること</li>
+<li>顔画像</li>
+</ul>
+
+
+<p>さて、これらの情報を一般的なリレーショナルデータベースのテーブル構造として捉えた場合、「姓名」「性別」「年齢」「居住地」「興味のあること」でのレコード検索が可能かと思います。</p>
+
+<p>ところがもし、「顔画像」の近似値でレコード検索できるとしたら・・・</p>
+
+<p>端的な例えですが、こんなことができるようになるわけですね。</p>
+
+<p><img src="/static/2016-08-15_10.06.21.jpg" alt="これは2011年のわいとんです・・・" /></p>
+
+<p>2011年の写真くらいしかさっくり入手できなかったのですが、頭の上に何か表示が出てますよね。その気になれば、年齢とか居住地とか出せそうではあるのですが、プライバシー保護の観点から、表示されて良い情報は非常に限定的かと思います。</p>
+
+<p>こんな感じのことを<a href="https://www.microsoft.com/cognitive-services/">Microsoft Cognitive Services</a>を使えば実現できそうだなぁ、と直感しておりまして、ひとまず一番慣れているperl5で利用できるようモジュールを書いてみました。</p>
+
+<p><a href="https://github.com/ytnobody/p5-Net-Microsoft-CognitiveServices-Face">ytnobody/p5-Net-Microsoft-CognitiveServices-Face</a></p>
+
+<p>ちなみにCognitive ServicesのFace APIは、試すだけなら<a href="https://www.microsoft.com/cognitive-services/en-us/pricing">3万トランザクション/月まで無料</a>ですので、割といい感じだと思います。</p>
+
+<p>※Microsoft Cognitive Servicesを利用するためには、あらかじめMicrosoft Azureを利用している必要があります。ここではAzureやCognitive Servicesの設定については細かく説明しませんが、Azure上でCognitive Services - Face APIをデプロイするとAccess Keyが払い出されるので、そのことだけは覚えておいてください。</p>
+
+<h2>Net::Microsoft::CognitiveServices::Faceを使ってみる</h2>
+
+<p>まぁ<a href="https://github.com/ytnobody/p5-Net-Microsoft-CognitiveServices-Face/blob/master/eg/identify.pl">eg/identify.pl</a>あたりを見てもらえると何となく使い方などがわかるとは思うんですが、一応解説。</p>
+
+<h3>まずFace APIのドキュメンテーションを把握しておく</h3>
+
+<p>Net::Microsoft::CognitiveServices::Face(以下CS::Face)のインターフェースは、ほぼ<a href="https://dev.projectoxford.ai/docs/services/563879b61984550e40cbbe8d/operations/563879b61984550f30395236">Face APIのドキュメンテーション</a>に合わせて作ってあります。したがって、Face APIのドキュメンテーションを読んでおかないと使い方がピンとこないです。</p>
+
+<h3>名前が長いので変数に食わしておく</h3>
+
+<p>ハイ、名前が長いのです・・・</p>
+
+<pre><code>my $api = 'Net::Microsoft::CofnitiveServices::Face';
+</code></pre>
+
+<h3>Access Keyを食わせる</h3>
+
+<p>まずは何をするにもAccess Keyを食わせないことにはアクセスさせてくれませんので、これを食わせます。</p>
+
+<pre><code>$api-&gt;access_key('YOUR_ACCESS_KEY');
+</code></pre>
+
+<p><code>YOUR_ACCESS_KEY</code> は適宜ご自身のAccess Keyに置き換えてください。</p>
+
+<h3>Person Groupを作る</h3>
+
+<p>人物情報を格納するために、Face APIにてPerson Groupを作っておく必要がありますので、これを作ります。 <code>$person_group_id</code>は半角英数及びハイフン・アンダーバーが利用可能です。 <code>name</code>は文字列で好きな値を設定できます。</p>
+
+<pre><code>my $person_group_id = 'my_person_group';
+$api-&gt;PersonGroup-&gt;create($person_group_id, name =&gt; 'My Person Group');
+</code></pre>
+
+<h3>Person GroupにPersonを登録していく(人数分やる)</h3>
+
+<p>顔画像の登録をする前に、人物情報となるPersonをPerson Groupに登録していきます。<code>name</code>及び<code>userData</code>に任意の文字列を設定できます。</p>
+
+<pre><code>my $person = $api-&gt;Person-&gt;create($person_group_id, 
+    name     =&gt; 'ytnobody', 
+    userData =&gt; 'Favorite:Programming,Motorcycle,Cooking,Anime',
+);
+</code></pre>
+
+<h3>人物情報に顔画像を紐付ける(人数分やる)</h3>
+
+<p>先ほど登録した人物情報に顔画像を紐付けます。<code>$image</code>には、外部から参照可能なurlを食わせる必要があります。</p>
+
+<pre><code>my $person_id = $person-&gt;{personId};
+my $image     = 'https://lh5.googleusercontent.com/-8qD5BkKOV3g/TtpRC-8J_wI/AAAAAAAAAlY/yYk2AFtM51U/s1024/20111203-P1000424.jpg';
+$api-&gt;Person-&gt;add_face($person_group_id, $person_id, $image);
+</code></pre>
+
+<h3>Person Groupに顔画像を学習させる</h3>
+
+<p>顔画像の登録が済んだら、Person Groupに顔画像の学習をさせます。学習には顔画像の数によってかかる時間が異なりますが、学習の済んでいないPerson Groupでは人物特定ができませんので、顔画像の登録後には必ず実施する必要があります。</p>
+
+<pre><code>$api-&gt;PersonGroup-&gt;train($person_group_id);
+</code></pre>
+
+<p>なお、以下のようにすることで学習状態の確認が可能です。</p>
+
+<pre><code>my $result = $api-&gt;PersonGroup-&gt;training_status($person_group_id);
+say $result-&gt;{status}; ## "succeeded" となっていれば学習完了。
+</code></pre>
+
+<h3>異なる顔画像からの人物特定</h3>
+
+<p>全く別の画像から顔画像を検出します。</p>
+
+<pre><code>my $detected = $api-&gt;Face-&gt;detect('https://mynavi-agent.jp/it/geekroid/ent51_img14.jpg');
+my $face_id  = $detected-&gt;[0]{faceId};
+</code></pre>
+
+<p>検出できた顔画像から、該当する人物のpersonIdを取得します。<code>faceIds</code>には本来複数のface_idを食わせることが可能ですが、今回は1件のみ食わせました。</p>
+
+<p>なお、<code>maxNumOfCandidatesReturned</code>にはマッチした人物の件数を指定できますが、1を指定することで一人に絞り込むことができます。</p>
+
+<p><code>confidenceThreshold</code>には一致率を0〜1の範囲で指定ができますが、この値に及ばない一致率の結果を足切りすることができます。</p>
+
+<pre><code>my $ident = $api-&gt;Face-&gt;identify(
+    faceIds                    =&gt; [ $face_id ],
+    personGroupId              =&gt; $person_group_id,
+    maxNumOfCandidatesReturned =&gt; 1,
+    confidenceThreshold        =&gt; 0.6,
+);
+my $candidated_person_id = $ident-&gt;[0]{candidates}[0]{personId};
+</code></pre>
+
+<h3>特定できた人物の情報を取得</h3>
+
+<p>ここまでである程度「この人間ですよね？」というレベルのマッチングがかかっているので、後はpersonIdを元にPersonを取得できればOKという感じになります。</p>
+
+<pre><code>$person = $api-&gt;Person-&gt;get($person_group_id, $candidated_person_id);
+printf "name =&gt; %s \n%s\n", $person-&gt;{name}, $person-&gt;{userData};
+</code></pre>
+
+<h2>まとめ</h2>
+
+<p>PerlからMicrosoft Cognitive ServicesのFace APIを利用するためのモジュール<code>Net::Microsoft::CognitiveServices::Face</code>を作ってみたので紹介しました。</p>
+
+<p>Cognitive Servicesには他にも画像・動画などの認識にまつわるAPIがあるので、今までにない仕組みを作るのに一役買ってくれるんじゃないでしょうか。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/microsoft.html">microsoft</a></li>
+      <li><a href="/tag/azure.html">azure</a></li>
+      <li><a href="/tag/cognitive-services.html">cognitive-services</a></li>
+      <li><a href="/tag/face-api.html">face-api</a></li>
+      <li><a href="/tag/perl.html">perl</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2016-08-15 15:01</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2016-08-15 15:01</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

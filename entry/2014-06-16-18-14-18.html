@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Dockerに入門してみたけど、僕の用途とは合わないと思った件 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-06-06-13-07-29.html">YAPC::Asia Tokyo 2014 でOtogiriのお話をするかもしれないです</a>
+    <li class="next">next: <a href="/entry/2014-06-22-00-44-52.html">hachiojipm 41 で老害っぷりを発揮してきた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Dockerに入門してみたけど、僕の用途とは合わないと思った件</h1>
+
+<p>簡単にテスト環境を構築したい。近頃そんなことを考えていたのだが、市井ではどうやら<a href="http://www.docker.com/">Docker</a>というものが流行の真っ只中にあるらしい。早速入門記事を漁ってみた。</p>
+
+<p>※実際にDockerに触れて数日経過してから記事を書いてます。思い出しながら書いてるため、一部表現の曖昧な箇所がありますが、どうかご了承ください。</p>
+
+<h2>入門にちょうど良かった @ITの記事</h2>
+
+<p>大手メディアであるところの@ITに「いまさら聞けないDocker入門」という連載シリーズがあるのだが、それの第2弾である<a href="http://www.atmarkit.co.jp/ait/articles/1406/10/news031.html">「ついに1.0がリリース！ Dockerのインストールと主なコマンドの使い方」</a>という記事を参考にした。</p>
+
+<p>スロースターターな僕にはこのくらいの記事がちょうど良かった。</p>
+
+<h2>手始めにインストールするも、ハマりどころが。</h2>
+
+<p>まず、32bitなOSを使っている方にとっては悲報だが、Dockerは32bitなLinuxでは動作しないどころか、インストールもさせてもらえない。もしどうしてもDockerを体験したい！ということであれば、どこぞのVPSを契約するとか、新しいPCを購入するとかした方がよいだろう。</p>
+
+<p>さて、僕の使っている環境はUbuntu-14.04(x86_64)なので、単に</p>
+
+<pre><code>sudo apt-get install docker.io
+</code></pre>
+
+<p>とすればインストールが終わった。</p>
+
+<p>ちなみにubuntuでは別途dockerというパッケージがあるが、これはdesktopにdockを表示するための何からしく、仮想環境をつくるDockerとは別物であるので要注意。念のため、typoなどすると困るので、aliasをはっておく。</p>
+
+<pre><code>alias docker=docker.io
+</code></pre>
+
+<p>さて、これでdockerコマンドが使えるようになっているはずだが・・・実際のところ使えない。PATHは通っているし、コマンドとしては一応ちゃんとレスポンスをかえしてくれる。しかし、docker.ioのdaemonとの通信ができない、というエラーがでてしまう（数日前なので詳細なエラー文言は忘れました・・・）。</p>
+
+<p>しかし、この現象についての対応方法はちゃんと<a href="http://docs.docker.io.s3-website-us-west-2.amazonaws.com/installation/ubuntulinux/">Dockerのドキュメンテーション</a>にまとめられている。</p>
+
+<p>上記ドキュメンテーションの "Memory and Swap Accounting" という項目に、grubに食わせるべきコマンドが記載されているので、/etc/default/grubの中身を以下のように書き換える。</p>
+
+<pre><code># GRUB_CMDLINE_LINUX="" ### この行を無効にして、下記行を追加
+GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"
+</code></pre>
+
+<p>ここまでできたら、sudo update-grub を実行し、ホストOSをリブート。これでdocker.io daemonとdocker.io clientが通信できるようになった。</p>
+
+<p>ちなみに@ITの記事では非rootユーザでdockerを扱えるよう、以下のようなことをしている。</p>
+
+<pre><code>$ sudo usermod -G docker ubuntu
+</code></pre>
+
+<p>が、これやったらvisudoとかするときに面倒くさいので、僕はroot権限(sudo経由)でdockerを扱うことにした。</p>
+
+<h2>Docker Hub Registryでレポジトリを選び、pullする。</h2>
+
+<p>ここからいよいよDockerを使っていく。まず、<a href="https://registry.hub.docker.com/">Docker Hub Registry</a> というwebサイトにアクセスする。ここには、主立ったディストリビューションなどのレポジトリが公開されているし、なんかWordPressが最初から入ってるっていう代物もあるらしい。</p>
+
+<p>ちなみに、ここで言うレポジトリというのは、Dockerコンテナの基礎になるOSイメージが数種類（バージョンごとに）格納されているものであり、TAGというのがバージョンを示している。</p>
+
+<p>とりあえず今回は<a href="https://registry.hub.docker.com/_/ubuntu/">ubuntuのレポジトリ</a>を使っていこうと思う。これもリンク先を見てもらいたいのだけど、このレポジトリの導入方法について、とても明快に解説されている。引用すると、以下のとおりである。</p>
+
+<pre><code>docker pull ubuntu
+</code></pre>
+
+<p>なお、docker images ubuntu とすれば、このレポジトリに属するイメージが一覧で表示される。また、pull済みのイメージを確認するには、docker images とすれば良い。</p>
+
+<h2>Dockerコンテナを作成・実行する</h2>
+
+<p>実はここが一番戸惑った箇所なのだが、Dockerはコンテナの作成と同時に、その中で実行するプログラムを指定する必要があるらしい。（僕はもともとOpenVZをかなり使い込んでいた人間なので、コンテナの作成とプログラムの実行が一緒のタイミング、という概念に違和感を覚えた。）</p>
+
+<p>ともあれ、実際の起動方法を知らないことには何もできないので、とりあえずやってみる。</p>
+
+<p>まず、bashのようなインタラクティブなプログラムを実行する場合、以下のようなコマンドで実行できる。</p>
+
+<pre><code>docker run -it --name my_container ubuntu:latest /bin/bash
+</code></pre>
+
+<p>これは、ubuntuの最新バージョンのイメージを元にmy_containerという名前のコンテナを新規作成し起動、そのまま/bin/bashを実行し、入力をシェルに戻す、という働きをする。これで直接コンテナ内のbashに対して色々とコマンドを与えることができる。なお、抜ける時にはCtrl + D でホストOSに戻ることができる。（後述のツッコミにて、Ctrl + D ではなく、Ctrl-p + Ctrl-q だとご指摘をいただきました。）</p>
+
+<p>なお、バックグラウンドで動くプログラムを実行する場合、インタラクティブなものに比べて、いくつかオプションが少なくてよい。</p>
+
+<pre><code>docker run --name my_container ubuntu:latest /path/to/daemon
+</code></pre>
+
+<h2>コンテナのライフサイクルについて</h2>
+
+<p>※ここから先はだいぶ理解があやふやなので、話半分に読み流してください。</p>
+
+<p>前述のbashを実行し、その後コンテナから抜けるためにCtrl + D（後述のツッコミを参照のこと）を押したと思う。ではその後、コンテナおよびそこに属するプロセスはどうなったのか。</p>
+
+<p>結果だけ書いてしまうと、「Ctrl + Dを押したタイミングで、コンテナごと終了する」のである。これがDockerにおけるコンテナのライフサイクルである。</p>
+
+<p>とどのつまり、単一かつ特定のプログラムを実行するためだけの存在であり、いわゆる「サーバ」として扱うにはいささか不便ではある。</p>
+
+<p>しかし、おそらくこれがDockerの利便性の1つなんだろうと予測しているが、今のところ僕にはその利便性がまだ実感できていない。多分、使い込んでいけばわかるようになるのだろう。</p>
+
+<h2>Dockerfileについて</h2>
+
+<p>おそらく、このDockerfileの存在こそが、DockerをDockerたらしめているのだろうと思う。</p>
+
+<p>これは、ある一定のルールに基づいて記述される、テキスト形式の「設定書」であり、事前にどのようなプロセスを起こすのかとか、どのようなrpmパッケージをインストールするのか、などのような、いわゆるOpsの管轄に当たる部分をカバーする代物と言える。使い方は</p>
+
+<pre><code>docker build -t oreore_image:oreore_tag - &lt; my_dockerfile
+</code></pre>
+
+<p>のように標準入力からも読ませられるので、とても便利である。</p>
+
+<p>しかし、このdocker buildコマンド、Dockerfileに記述されている1行ごとにdocker commit を行っている模様で、buildの間、dockerコンテナがもりもりと増えていく。正常に終了すれば、これらの「途中経過」コンテナたちは綺麗にremoveされるのだが、不慣れなうちはDockerfileにミスを埋め込むものであり、結果、処理は正常終了せず、大量の「途中経過」コンテナが残留することとなる。</p>
+
+<p>これらを一気に掃除する方法はあるのだが(awkを使ったりする)、正直そのようなことをしなくても、失敗後に掃除はしてほしいと思った。</p>
+
+<h2>数日触ってみた感想</h2>
+
+<p>「アプリケーションを稼働する環境を、アプリケーションごとパッケージングする物」としては、Dockerは紛れもなく最高の選択肢であると感じた。しかし、僕のように「テスト環境を構築する物」を欲する身としては、かなり貧弱な印象を受けた。おそらくこれはDockerが悪いのではなくて、用途の向き不向きの問題であると認識している。そういった用途には、まだまだVagrantやOpenVZなどに軍配があがると感じた。</p>
+
+<p>また、OpenVZではコンテナに割り当てるリソースのチューニングができるのだが、Dockerにそのような機能があるのかどうかは今のところ見つけることができていない。実際に本番運用している方はその辺をどのように切り抜けているのだろうか、という疑問が残った。</p>
+
+<h2>2014-06-17 追記: ツッコミをいただきました。感謝。</h2>
+
+<p>ブクマコメなどで、いくつかご意見・ご教示などをいただきました。ありがとうございます。</p>
+
+<h3>今のところメモリ・cpuコア・プロセス相対優先度は割り当てられたはず</h3>
+
+<p>なるほど、これは知らなかったです。</p>
+
+<p>といいますか、例えばメモリやCPUの割り当てについては、<a href="https://docs.docker.com/reference/run/#runtime-constraints-on-cpu-and-memory">ドキュメンテーション</a>にかいてますね・・・＞＜</p>
+
+<h3>Dockerコンテナはアプリケーションの単位で作るもので、サーバにもできるが多分不幸になる</h3>
+
+<p>これは薄々感じていたことですね。</p>
+
+<p>サーバにできるけどおそらく不幸になる、というのは、あくまで「長年の経験に基づく勘」レベルですが、監視やコンテナ間通信などで苦労しそうだなあという勝手な想像を抱いており、何となくわからんでもないです。</p>
+
+<h3>テスト環境も本番も同じDockerイメージ使いたい</h3>
+
+<p>これは実運用環境でDockerを使っているのであれば、そうすべきですよね。逆に、実運用環境がDockerではないのに、テスト環境としてDockerを使ってみようとしたのは、だいぶ良くないアプローチだったかもしれません。</p>
+
+<h3>知の高速道路まだ出来てない感</h3>
+
+<p>知の高速道路あるなら教えていただきたい・・・！</p>
+
+<h3>他の仮想環境と比較してDockerは揮発的過ぎるかもしれない</h3>
+
+<p>揮発性がよしとされる用途なら、これで良いのだと思いますし、そういった用途は案外多かったので、この様に流行しているのかなあ、と思います。</p>
+
+<h3>いろいろとツッコミたいところ満載だけどめんどくさいし余白が狭い</h3>
+
+<p>気が向いたら、お手すきのときにツッコミ入れてくれるとうれしいです。</p>
+
+<p>あと僕のブログ記事は基本的にタイトルが長いです。</p>
+
+<h3>Ctrl-dではなく、Ctrl-p + Ctrl-q</h3>
+
+<p><a href="https://docs.docker.com/articles/basics/#running-an-interactive-shell">https://docs.docker.com/articles/basics/#running-an-interactive-shell</a></p>
+
+<p>ctrl + d ではない、のですね。ありがとうございます。</p>
+
+<p><a href="http://www.atmarkit.co.jp/ait/articles/1406/10/news031_2.html">こちらの記事</a>の最下部に、</p>
+
+<pre><code>一通り操作したら、［Ctrl］＋［d］キーでbashプロセスを終了しましょう。プロセスの終了とコンテナーの停止は連動するため、この時点でコンテナーubuntu1は停止状態になります。
+</code></pre>
+
+<p>と書いてあったものですので、その通りにしてみた次第でした。</p>
+
+<h3>Dockerfileで失敗した時に大量にゴミが残る件</h3>
+
+<p>某所で教えていただきました。</p>
+
+<pre><code>確かあれ、途中まで一緒のやつであれば底からビルドが始まるはず
+環境がバージョン管理されていることのメリットを活用するために残す
+</code></pre>
+
+<p>なるほど。うまくいってる所を再度実行する必要は無いんだから、途中経過は残しておくべき、ということですね。</p>
+
+<h2>もう一つ追記: この記事について</h2>
+
+<p>ご意見などいくつかお寄せいただきましたが、僕はそこまで理解できてる訳じゃないんだなー、というのが露呈した感じですねw</p>
+
+<p>まあ、ちゃんと調べてから書け！という話は真摯に受け止めます。でも、僕は書かないと忘れる質ですし、不完全でも公開しないことにはツッコミも頂けませんので、気が向いたら記事を書きます。たとえそれが不完全でも、です。その代わり、ツッコミは常時大歓迎です。</p>
+
+<p>さて、ちょっとだけ気になったので追記しますが、この記事はDockerのFUDでは「ありません」。こいつ、釣り針でかくしたなーwとかそういう風に捉えられるとちょっと困ります＞＜。なので、素直な気持ちで捉えていただけるとうれしいです。</p>
+
+<p>それとも、「流行の技術に入門してみた」的な記事は、近頃は釣り針なんでしょうかねえ。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/Docker.html">Docker</a></li>
+      <li><a href="/tag/b32.4S525ZUDWPTZFMHFUKBQ.html">仮想環境</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-06-16 19:35</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-06-17 11:30</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

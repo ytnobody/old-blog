@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Mishima.pm #0 に行ってきたお話 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2013-11-18-15-35-29.html">Plack::Response::AutoEncode を作ったらすぐに死んだので原因を書き留めておく</a>
+    <li class="next">next: <a href="/entry/2014-02-28-18-04-09.html">Vector::QRCode::IntoPDFというモジュールを作った</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Mishima.pm #0 に行ってきたお話</h1>
+
+<p><img class="photo" src="/static/2013-12-11 20.31.57.jpg"></p>
+
+<p>結構時間経過してしまってますけど、昨年の12/11(水)に <a href="http://atnd.org/events/45877">Mishima.pm</a> というものが開催されるということで、参加してきました。</p>
+
+<p>元々業務の方の進捗があまり芳しくなかったこともあり、参加できるか微妙だったのでATNDに登録すらしていなかったのですが、ギリギリのタイミングでどうにか進捗OKな感じに仕上がったので、つい「<a href="https://twitter.com/ytnobody/statuses/410680597653094400">三島いくぜ</a>」とかつぶやいたのであります。</p>
+
+<h2>「俺のMishima.pmは始まっているんだ・・・東名に入ったこの瞬間からな!!!!」</h2>
+
+<p>そもそも到着までに色々とありました・・・。</p>
+
+<p>まず一旦家に戻って長男を20分ほど説教し、そのままVTR250に跨って東名町田から名古屋方面へ。</p>
+
+<p>しかし、この日はとんでもない寒波が関東を襲撃しており、VTRで三島まで突っ切るなんてのは相当な無茶をやらかした物だと思い知ることに。</p>
+
+<p>丹沢颪をもろに受けながら100km前後で走行するのは（寒いのもそうなのですが）車体ごと風で横に煽られ、とにかく恐怖と戦いながらの強行軍となりました。</p>
+
+<p>結局、途中2回ほど暖を取るためにPAで小休止(鮎沢PAと駒門PA)をとりまして、三島駅前に到着する頃には20:00を経過。</p>
+
+<p>が、ここに来てさらに追い討ち。iPhoneで<a href="http://atnd.org/events/45877">ATND</a>を確認してみると、google mapsに映っているのは「三島広小路」という駅であり、「三島」駅ではない様子。三島から三島広小路までは伊豆箱根鉄道で1駅だったんですけど、次の電車がくるまで20分ほど待つ必要があり、実際そんなに待っている余裕はないので、さっさとタクシーで会場に直行。</p>
+
+<p>最終的に、会場入りしたのが20:30という酷い遅刻っぷりをかましてしまいました・・・</p>
+
+<h2>オープニング / 各自発表</h2>
+
+<p>会場には主催のdokechinさんと僕の2名しかいなかったのですが、時間も残り少ないということもあり、早速オープニングと各自の発表へ。</p>
+
+<p>オープニング。設立動機について「静岡県にもpmが欲しい！」とアツく語るdokechinさん。浜松の某ITベンチャー社長さんからも「やってみたら」的な話もあったらしい。僕はすかさず「浜松の某ITベンチャー社長さん、来てくださいよぉ！」とかツッコミをいれる。また、Hotspring.pm（ようするに温泉+ハッカソンみたいなの）も今後やっていきたいよね、ということを話しておりました。</p>
+
+<p>各自発表。dokechinさんの発表では、<a href="http://search.cpan.org/perldoc?Lingua::EN::Fathom">Lingua::EN::Fathom</a>というモジュールの紹介をしてくださいました。これは英文の難易度を数値化するモジュールらしく、僕自身初めて見たものでしたし、なかなかおもしろいな、と思いました。</p>
+
+<p>僕も各自発表で出たとこ勝負な発表をしてきました。いかんせん出たとこ勝負ですので、スライドなどは特に準備しておりませんが、"おれおれWAF「Nephia」の近況"という題で、<a href="http://search.cpan.org/perldoc?Nephia">Nephia</a>の基本的な使い方と<a href="http://github.com/nephia/Nephia-Setup-Plugin-Relax">Nephia::Setup::Plugin::Relax</a>の大まかな使い方と開発状況、開発方向性について話しました。</p>
+
+<h2>会場が無料！？</h2>
+
+<p><img class="photo" src="/static/2013-12-11 20.58.09.jpg"></p>
+
+<p>dokechinさんに聞いたところによると、今回の会場、やたら綺麗だったんですけど、Mishima.pmとして借りる分にはなんとタダらしいです！</p>
+
+<p>freeなWiFiもあるらしく（僕がつかいませんでしたが）、1Fにはスーパー(イオンだったかな？)もあり、飲み物の調達には事欠かなそうです。</p>
+
+<h2>懇親会</h2>
+
+<p><img class="photo" src="/static/2013-12-11 21.46.08.jpg"></p>
+
+<p>最高でしたよ。焼きハマグリ。炙り干物。移動手段的な理由によりノンアルコールビールに甘んじましたが、最高の三島体験でした。</p>
+
+<h2>帰路</h2>
+
+<p><img class="photo" src="/static/2013-12-11 22.36.13.jpg"></p>
+
+<p>懇親会の後、伊豆箱根鉄道で三島駅まで向かいました。その中で、「今後はぜひ週末に開催してほしいです！」とお願いしちゃいました。</p>
+
+<p>写真は三島広小路の駅のホームです。ノスタルジックな雰囲気がとても哀愁を感じますね。趣深いです。</p>
+
+<p>dokechinさんとは三島駅で別れ、すぐそばのコンビニでホッカイロを6つほど買い込んで体にペタペタと張り付け。これで帰路の寒さもへっちゃら！？</p>
+
+<p>さすがに帰りも丹沢颪にやられるのはきついので、国246を使ってひたすらノタノタと相模原へ向けVTRを走らせます。途中、御殿場でコンビニに寄って肉まんを頬張り、あとはとにかくひたすら東へ東へと走り抜け、自宅についた頃には25:30を回っておりました。</p>
+
+<p>今度はぜひ暖かい季節にいきたいですね！寒い今の時期にいく場合、新幹線でいくのがベストです（当たり前だ</p>
+
+<p>そして、三島付近でperlやプログラミングに興味のある方は、ぜひ次の機会に行ってみるといいのではないでしょうか！</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/community.html">community</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-01-06 17:29</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-01-06 17:29</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

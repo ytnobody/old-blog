@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+「プログラマ」やめるぞい | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2015-03-26-16-06-59.html">tutumの新機能&quot;Stacks&quot;を使ってみる</a>
+    <li class="next">next: <a href="/entry/2015-04-19-01-05-00.html">いろんなイベントいってきたのでまとめてレポ</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>「プログラマ」やめるぞい</h1>
+
+<p>さて、当ブログを見てくださっている皆さんでしたら既にご存知かと思いますが、僕はPerlをメインに扱っているサーバサイドプログラマです。</p>
+
+<p>しかし、そのお仕事とも4/6でお別れをすることになりました。渋谷よ、サヨウナラ。</p>
+
+<h2>なぜ？</h2>
+
+<h3>エンジニアとしての回答</h3>
+
+<p>僕は最近Unity及びC#に入れ込んでおりまして、Javaスキルを求められる未来を見た時に、それよりもUnity/C#の方に魅力を感じたからです。</p>
+
+<p>C#はとにかく出口の多い言語であり、現時点でデスクトップアプリ、モバイルアプリ（iOS/Android/Windows Phone）、webアプリをC#で開発することが出来る状況です。</p>
+
+<p>Javaでも同様のことが可能ではあるのですが、やはりMicrosoft .NETのオープンソース化が非常に大きな引き金になっており、数年後にはJavaと同様に、エンジニアにとっての有力な選択肢になり得ると思います。</p>
+
+<p>また、完全に個人的見解ですが、エディタであるMonoDevelopはEclipseよりもシンプルで使い勝手が良いと感じており、この点についてもJavaよりもC#を優先する一因となっています。</p>
+
+<p>そして、今年の初めにUnityで<a href="http://ytnobody.net/impress/Papizilla/">Papizilla</a>を開発してから、僕の中でUnityに対する評価が鰻登りになったのです。こんなに簡単にゲームを、ネイティブアプリを作れるのか、と驚いたものです。Unityを使うと、Android向けにアプリケーションをpublishすることが可能ですし、Xcodeプロジェクトとして出力することもできますので、iOS向けにもアプリケーションをpublishできるのです。</p>
+
+<p>ちなみに次の予定は相変わらずPerlも触るしUnityも触ってよし！という感じです。</p>
+
+<p>あ、誤解のないように補足しますが、あくまで僕の興味の対象が、JavaよりもUnity/C#のほうに強く惹かれている、というだけの話です。Javaはおそらく今後も使われ続けるだろうし、Java8は良いものだと思いますよ。</p>
+
+<h3>ビジネスパーソンとしての回答</h3>
+
+<p>誰かがサービスの方向性を決めて、方向性に沿った企画に基づきプログラムを作る「プログラマ」という役割を４年近くこなしてきたわけなのですが、６年先くらいを見据えた時に、「お客様にリーチし、直接対話する立場」に立つべきだな、と思いました。観測結果を元にサービスの改善を常に考え、実行に移し、サービスの成長を促進させるエンジニアになりたかったのです。</p>
+
+<p>そのためには、エンジニアリングとユーザサポート、ディレクションを並行してやらせてくれるような場所が必要でした。</p>
+
+<p>このような役割を、世の中では''グロースハッカー''と呼ぶようですが、今回、そのようなキャリアパスを示していただいた企業が国内にあったことに、大変感謝をする次第です。</p>
+
+<h2>得たもの</h2>
+
+<h3>アクの少ないコードを書く能力</h3>
+
+<p>入社当初、僕のコードには大変に宜しくない癖のようなものが多々ありました。</p>
+
+<p>どのようなものかについては、<a href="http://yellowstore.blogspot.jp/2012/10/perl.html">こちらのエントリ</a>に詳しく明記してあります。</p>
+
+<p>べからずを沢山指摘いただけた分、だいぶアクの少ないコードを書くことが出来るようになった、と自分で実感しております。</p>
+
+<h3>シンプルに設計する能力</h3>
+
+<p>これも入社当初と比較しての話ですが、目的を達成する上で、よりシンプルな実装に落としこめるように設計をすることが出来るようになった、と実感しております。</p>
+
+<p>得た知見を標語っぽくするならば、</p>
+
+<ul>
+<li><p>見た目にこだわった分、使ってもらえなくなる</p></li>
+<li><p>ログは外部の分析システムに投げ込め</p></li>
+<li><p>利用者が明確化していない物は実装するな</p></li>
+<li><p>単機能に徹しろ</p></li>
+</ul>
+
+
+<p>というところでしょうか。</p>
+
+<h3>普通自動二輪免許</h3>
+
+<p>まともに有給を取得できるはじめての勤め先でした。そのため、以前からほしいと思っていた普通自動二輪免許を取得することに有給をあてることができました。</p>
+
+<h3>横のつながり</h3>
+
+<p>おそらく渋谷に来なければ、<a href="http://perl-beginners.org/">Perl Beginners</a>をやろう、とはならなかったかもしれないですね。</p>
+
+<p>そもそもPerl Beginnersは、<a href="http://hachiojipm.org/">Hachioji.pm</a>を町田で開催したときに、酒の入りきったまいんだー氏に「MySQL Casualって『ガチュアル』じゃないっすか？」って言った事がキッカケで出来上がったものです。</p>
+
+<p>しかし、前職のベンチャーにいる立場でイベント運営はどう考えても無理がありますし、都内に出てくる事自体が稀でしたので、まいんだー氏から「じゃあ今からドメイン取りましょう。それでイベント開いて人を集めてみてくださいよ」って言われた時に、「よしわかった」とは答えられなかったかもしれない。</p>
+
+<p>それが、結果的にPerl Beginnersをおよそ3年間、ほぼ2ヶ月おきに開催できたわけです。そして、そこであった沢山のエンジニアの皆さんと出会うことができた。</p>
+
+<p>また、Perl Beginnersの主催をしている、という事実があるおかげで、色々な方から覚えてもらいやすかった様でした。</p>
+
+<p>最近では<a href="http://machidapm-fm.tumblr.com/">マチピーFM</a>というものをやっているのですが、これはクラウド関連のトピックを中心に雑に「ダベる」だけのネット放送でして、おかげさまでそこそこの評判を頂いているようです。</p>
+
+<h2>最後に</h2>
+
+<p>今まで一緒にやってきた皆さん、本当にありがとうございました。</p>
+
+<p>次は乃木坂で「グロースハッカー」としてがんばるます。</p>
+
+<h2>まとめ</h2>
+
+<ul>
+<li><p>「プログラマ」から「グロースハッカー」になるよ！</p></li>
+<li><p>プログラミングをやめるわけじゃないよ！</p></li>
+<li><p>Unity/C#をつかうようになるよ！</p></li>
+<li><p>このまとめは本当だよ！嘘じゃないよ！</p></li>
+</ul>
+
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/b32.4OBZ3Y4CU7RYHIA.html">ポェム</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-04-01 12:40</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-04-01 15:55</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Unityの練習として1週間くらいでゲームを作ってみた | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-12-21-12-25-25.html">MeCab? それDockerでできるよ</a>
+    <li class="next">next: <a href="/entry/2015-01-18-11-04.html">Docker Meetup Tokyo #4 でtutumの回し者になってきた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Unityの練習として1週間くらいでゲームを作ってみた</h1>
+
+<p>新年おめでとうございます。今年もよろしくお願いします。</p>
+
+<p>さて、長い正月休みを活用して、新しいことにチャレンジしてみました。</p>
+
+<h2>前置き</h2>
+
+<p>「Unityはすごいらしい」「Unityがナウなヤングにバカウケ」という声を去年の夏ごろから結構目にしていたので、じゃあ僕もやってみるかな、という軽いノリで10月くらいからUnityを少しずつ練習していました。</p>
+
+<p>ちなみに参考にした本はこちら（僕が使ってるのは物理版です）。</p>
+
+<p><a href="http://www.amazon.co.jp/gp/product/4798041254?ie=UTF8&amp;camp=1207&amp;creative=8411&amp;creativeASIN=4798041254&amp;linkCode=shr&amp;tag=ytnobody-22">見てわかるUnity4 2Dゲーム制作超入門</a></p>
+
+<p>フルカラーで大変わかりやすく、プログラミング経験のある向きであれば、大体あっさりと理解できるのではないかと思います。</p>
+
+<h2>さて本題。</h2>
+
+<p>そうやってちょこちょこと触っていたUnityですが、正月休みをやたら長いめに取得していたこともあり、いよいよ本気で注力してみよう、ということで作ったのがこちら。</p>
+
+<p><a href="http://ytnobody.net/impress/Papizilla/">Papizilla - 渋谷が舞台のタワーディフェンスゲーム</a></p>
+
+<p>ネタ元になってくれたフリー素材エンジニアpapixさんの心の広さに、半ば感動を覚えながら完成までこぎつけました。</p>
+
+<p>よくあるタワーディフェンスゲームと違うのは以下の点。</p>
+
+<ol>
+<li><p>敵は「パピジラ」ただ１体のみ。</p></li>
+<li><p>敵は倒れない。</p></li>
+<li><p>ユニットの配置という概念がなく、代わりにアイテムのレベルという概念と物理演算に立脚している。</p></li>
+</ol>
+
+
+<p>それから、今回アイデアを提供してくれたuzullaさんデザインの<a href="https://suzuri.jp/uzulla/128562/t-shirt/s/californiaorange">「ヤプシー成功祈願」Tシャツ</a>とコラボしており、スペシャルアイテムとして登場しております。</p>
+
+<p>ぜひTシャツのほうもよろしくお願いします。</p>
+
+<h2>Unityでの開発手法で気になってることなど</h2>
+
+<p>githubでのプロジェクト管理手法を知りたいなあ、と思って調べてみたら、<a href="http://keijiro.github.io/unity-github-tutor/">Unity で GitHub しよう！</a> というサイトがあったので、先々参考にする予定です。</p>
+
+<p>あとAnimationEventについては今のところさっぱり理解できず。結局Coroutineですべてを片付けてしまいましたが。</p>
+
+<p>それから１つのGameObjectにAudioコンポーネントが１個しか紐付けられない？のは大変不便だなあと思いました。みなさん効果音の管理とか、どうしてるんでしょ。</p>
+
+<h2>ちょっとだけポエム</h2>
+
+<p>ちなみに、上述の本で、最初のほうに書かれている内容でこんな記述があります。</p>
+
+<pre><code>でも、何もわからない人間がこんな本片手にスタートしたって、途中で挫折してしまうんじゃ……なんて考えている人。もちろん、そうかも知れません。途中でわからなくなって放り出してしまうかも知れませんね。
+
+でも、それって何か問題ですか？
+
+この世に挫折する人は大勢居るけれど、「アプリケーションを起動したら即座に挫折した」なんて人はまずいません。とりあえずいくらかやり進めてみて、難しくなったところでつまずく、というのが普通です。
+つまり、「挫折する前まではわかった」わけです。100のうち、50で挫折するか、30で挫折するか、10で挫折するか、それはわからない。でも「ゼロで挫折した人」はいないんです。1でも2でも、必ず前へは進んでいるんです。「挫折した」のは、前に進んだ証拠です。前に進もうとしなければ、挫折なんてしないんですから。
+
+* 引用中略 *
+
+今、挫折しても、いつの日かわかる日が来るかもしれない。でもその日は、実際に挑戦して挫折する経験がないと決してやってこないのです。挑戦しない人が何もしないで「いつかわかる日が来る」ことは絶対にないんです。
+</code></pre>
+
+<p>大変共感できる内容だったので、引用させていただきましたが、僕もご多分にもれず、実際に何度かUnityの習得に挫折しました。</p>
+
+<p>しかし、若干触れる程度だったC#をもう一度学びなおしつつ、時折思い出したようにリベンジを繰り返していた矢先、某町田界隈のおじさんたちのたまり場で「こういうゲーム面白そうだね」的なログを目にし、実際に作り始めてみたところ、それっぽく出来上がってしまった、というのが実際のところです。</p>
+
+<h2>まとめ</h2>
+
+<ol>
+<li><p>松岡修造的なアツさを捨てちゃいけないよ！</p></li>
+<li><p>ヤプシー成功祈願していこうよ！</p></li>
+<li><p>寿司</p></li>
+</ol>
+
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/Unity.html">Unity</a></li>
+      <li><a href="/tag/b32.4OB2JY4DS7RYFN7DQO6ONCEQ4WFJ7Z5FRDU2DGA.html">ヤプシー成功祈願</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-01-12 16:05</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-01-12 16:49</dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

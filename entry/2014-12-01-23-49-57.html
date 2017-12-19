@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Google Cloud SQL を雑にMySQLの代用品として利用してみた | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-11-09-09-25-05.html">tutumでできるwebapp冗長化構成</a>
+    <li class="next">next: <a href="/entry/2014-12-21-12-25-25.html">MeCab? それDockerでできるよ</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Google Cloud SQL を雑にMySQLの代用品として利用してみた</h1>
+
+<p>※このエントリは、<a href="http://qiita.com/advent-calendar/2014/mysql-casual">MySQL Casual Advent Calendar 2014</a> の2日目として書かれたものです。12/2(火)現在、まだいくつか枠が残っておりますので、興味のある方はぜひ参加してみてはいかがでしょうか。</p>
+
+<p>※このエントリに掲載されているGoogle Cloud SQLは課金が必須なサービスです。本文中でも多少触れますが、クレジットカードなしでは試すこともできませんので、ご注意ください。</p>
+
+<h2>Google Cloud SQL とは？</h2>
+
+<p>最近クラウド分野に力を入れてきているGoogleですが、かなり前に<a href="https://cloud.google.com/sql/">Google Cloud SQL</a>(以下Cloud SQL)をリリースしています。今思い出したかのようにリリース時の記事を検索してみたのですが、<a href="http://www.atmarkit.co.jp/fdb/rensai/googlecloudsql/01/01.html">@ITによると、2011年11月にサービス提供をしている</a>らしいので、すでに3年経過していることになります(ちなみに<a href="http://jp.techcrunch.com/2014/02/12/20140211googles-cloud-sql-hits-general-availability-gets-an-sla-encryption-and-support-for-larger-databases/">正式公開</a>は米国時間の2014年2月11日)。</p>
+
+<p>もはや「安定したサービス」と言えるのではないでしょうか。</p>
+
+<h2>なぜMySQL Casualの話題にCloud SQL？</h2>
+
+<p>Cloud SQLについてあまりご存知ない方にとって見れば、「そもそもMySQLとどう関係があるの？」という疑問が頭を過ることでしょう。ご安心を。大いに関係ありまくりです。</p>
+
+<p>Google Cloud SQLは、そもそもMySQLが基盤となっているサービスです。どういう事かイマイチ想像がつかないかもしれませんが、気にせず読み進めていただけると、きっと納得していただけるはずです。</p>
+
+<h2>手始めにプロジェクトを作ろう</h2>
+
+<p>Cloud SQLを利用するには、<a href="https://console.developers.google.com/project">Google Developers Console</a>からGoogle Cloud Platform(以下GCP)にプロジェクトを作る必要があります。</p>
+
+<p>もしすでにGCPにプロジェクトを持っている場合は、それを流用しても構いませんし、別途新規作成してもいいでしょう。</p>
+
+<p>ただし、Cloud SQLはGoogleの提供するストレージにデータを貯めこむシステムでして、このストレージが有料となります。予め課金を有効にしておきましょう。完全無料（クレジットカードなし）では利用不可能ですので、もし何らかの理由で決済手段がない方は諦めるしかありません。</p>
+
+<h2>Google Cloud SDK をインストールしよう</h2>
+
+<p>GCPでは、管理ツール郡を<a href="https://cloud.google.com/sdk/">Google Cloud SDK</a>として配布しています。これを利用することで、コマンドラインからCloud SQLをはじめとしたクラウドリソースの操作・参照が可能となります。</p>
+
+<p>Google Cloud SDKはLinux, Mac OS X, Windowsで動作します。上記リンク先より手順を確認し、ダウンロード及びインストールをしておきましょう。</p>
+
+<p>無事にインストールが完了したら、gcloud コマンドが利用可能となっているはずです。</p>
+
+<h2>Google Cloud SDKでアカウント認証をしよう</h2>
+
+<p>gcloud コマンドが利用可能となっていることが確認出来たら、Google Cloud SDKでアカウント認証をしましょう。</p>
+
+<pre><code>$ gcloud auth login
+</code></pre>
+
+<p>このようにするとブラウザが開き、認証ページへと移動しますので、認証を行いましょう。もし認証ページが開かない場合は、ターミナルにURLが表示されているはずですので、手動でそのURLにアクセスして、認証を行ってください。なお、認証済みアカウントの確認は</p>
+
+<pre><code>$ gcloud auth list
+</code></pre>
+
+<p>で可能です。</p>
+
+<h2>Cloud SQL インスタンスを作ろう</h2>
+
+<p>今度はいよいよCloud SQLインスタンスの作成に入っていきます。と言っても、実はさほど手順は多くなく、以下のようなコマンドを実行するだけです。</p>
+
+<pre><code>$ gcloud sql instances create \
+    [今作るインスタンス名(好きな名前でok)] \
+    --project [さっき作ったプロジェクトのID] \
+    --tier D0 \
+    --assign-ip
+</code></pre>
+
+<p>オプションはそれぞれ以下のような意味を持っています。</p>
+
+<ul>
+<li>project : インスタンス作成先のプロジェクトID（必須）</li>
+<li>tier : インスタンスのタイプ。D0は128MBのRAM。--tierを指定しないとD1となる。参考: <a href="https://cloud.google.com/sql/pricing">Pricing</a></li>
+<li>assign-ip: グローバルIPの割り当てを行うオプション。これをつけないとGoogle App Engineからしかアクセスできない。</li>
+</ul>
+
+
+<p>より詳細なオプションについては、<a href="https://cloud.google.com/sdk/gcloud/reference/sql/instances/create">こちらのドキュメント</a>を参照してください。</p>
+
+<p>実行以下のような表示となれば、無事にCloudSQLインスタンスの作成に成功したことになります。</p>
+
+<pre><code>Creating Cloud SQL instance...done.
+Created [https://www.googleapis.com/sql/v1beta3/projects/oreore-project-xxx/instances/db00x].
+NAME   REGION      TIER  ADDRESS         STATUS
+db00x  us-central  D0    xxx.xxx.xxx.xx  RUNNABLE
+</code></pre>
+
+<h2>アクセスコントロールリスト(ACL)を調整しよう</h2>
+
+<p>新しく出来上がったCloud SQLインスタンスでは、もう既にMySQLが稼働しています。が、そこへアクセスするためのネットワーク経路が確保されていません。</p>
+
+<p>Cloud SQLでは基本的に外部ネットワークからのアクセスを遮断しているため、最低でもMySQLクライアントのアクセス元となるIPを許可する必要があります。</p>
+
+<p>Google Developers Consoleからプロジェクトを1つ選択し、「ストレージ」＞「Cloud SQL」というふうにメニューを選択すると、以下のようなCloud SQLのインスタンス一覧画面がでてきます。</p>
+
+<p><img src="http://i.gyazo.com/af3580aadd7e8809104ed822ff951d34.png" alt="Cloud SQL インスタンス一覧画面" /></p>
+
+<p>インスタンスを選択したら、「アクセス制御」タブをクリックしてください。すると、以下のような画面になります。</p>
+
+<p><img src="http://i.gyazo.com/26f2aa4510f6f2ae93b004e8b5f3389b.png" alt="アクセス制御" /></p>
+
+<p>ここで「承認済みネットワーク」の右にある「新しく追加」というリンクをクリックし、MySQLクライアントのアクセス元となるIPを登録することで、ネットワーク経路が確保されます。</p>
+
+<p>なお、この画面にあるIPアドレスは、MySQLクライアントで接続するときに必要ですので、忘れないようにしましょう。</p>
+
+<h2>MySQLのrootパスワードを設定しよう</h2>
+
+<p>前述の承認済みネットワーク追加画面で、もうひとつ大事なのが「rootパスワードの設定」という項目です。</p>
+
+<p>これはMySQLのrootパスワードのことを指しており、実運用上必須の設定項目ですので、これも設定しておきます。</p>
+
+<h2>MySQLクライアントで接続してみよう</h2>
+
+<p>ここまでできれば、とりあえず接続して中身を確認することができます。以下のようなコマンドで実際に接続してみましょう。</p>
+
+<pre><code>$ mysql -u root -p -h [Cloud SQL インスタンスのIPアドレス]
+</code></pre>
+
+<p>接続できたら、あとは普段利用しているMySQLと同様に自由に探索してみましょう！！</p>
+
+<p>きっと「Cloud SQLはMySQLそのままじゃん」って思うに違いないですよ！</p>
+
+<h2>Webアプリで試してみた</h2>
+
+<p>実は前回のHachioji.pmにて、「Cloud SQLとDockerをつかってyancha(webチャット)を立ち上げる」という内容のLTを行いました。その時使ったDocker imageが<a href="https://registry.hub.docker.com/u/ytnobody/docker-yancha/">こちら</a>。</p>
+
+<p>折角ですので、このDocker imageを使って、実際にyanchaを起動してみましょう。ちなみにyanchaはバックエンドDBとしてsqliteまたはMySQLが利用可能でして、ytnobody/docker-yanchaでは環境変数MYSQL_HOSTを指定するとMySQLを使用するようになります。</p>
+
+<p>Cloud SQLを利用したdocker-yanchaの起動コマンドは、以下のようなものです。</p>
+
+<pre><code>$ sudo docker run \
+    --rm \
+    -p 3000:3000 \
+    -e MYSQL_HOST=[あなたのCloud SQLインスタンスのIP] \
+    -e MYSQL_DBNAME=yancha \
+    -e MYSQL_USER=root \
+    -e MYSQL_PASSWORD=[設定したパスワード] \
+    -it ytnobody/docker-yancha
+</code></pre>
+
+<p>きちんと起動できたら、以下のような表示となります。</p>
+
+<pre><code>Running Yancha on Docker - Yancha Cloud ...
+</code></pre>
+
+<p>ここまで出来たら、あとは http://localhost:3000/ にアクセスすれば、実際にwebチャットとして稼働していることが確認できると思います。</p>
+
+<p>（以下の画像は稼働時の参考です。</p>
+
+<p><img src="http://i.gyazo.com/1b91ba98a41bf05e761c2621812964dd.png" alt="yancha 稼働イメージ" /></p>
+
+<h2>まとめ</h2>
+
+<p>実運用にはもう少しちゃんとした設定（SSL周りとか）が必要ではあるのですが、小規模かつ軽薄なアプリケーションなら、比較的簡単にCloud SQLでwebアプリケーションを稼働させることが可能です。</p>
+
+<p>個人的な感想としては、速度面では微妙だと思うのですが（とにかく速度！！！という感じの用途には全く向かない）、運用上の手間がほぼかからないのと、リクエストの少ないwebアプリケーションであれば比較的安価にMySQLを稼働させておけるという面で、選択の一つとしては悪くないと思いました。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/mysql.html">mysql</a></li>
+      <li><a href="/tag/adventcalendar.html">adventcalendar</a></li>
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/cloudsql.html">cloudsql</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-12-02 03:01</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-12-02 03:01</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

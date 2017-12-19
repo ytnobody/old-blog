@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+VZNopeというOpenVZ wrapperの紹介 (2) | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-06-25-16-11-35.html">VZNopeというOpenVZ wrapperの紹介 (1)</a>
+    <li class="next">next: <a href="/entry/2014-06-25-16-11-35_3.html">VZNopeというOpenVZ wrapperの紹介 (3)</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>VZNopeというOpenVZ wrapperの紹介 (2)</h1>
+
+<p><a href="/entry/2014-06-25-16-11-35.html">前回のエントリはこちら</a></p>
+
+<h2>コンテナの一覧を見てみる</h2>
+
+<p>vzn list コマンドで、出来上がったコンテナの概要を一覧でみることができます。</p>
+
+<pre><code>~$ vzn list
+  VEID              NAME      COMMIT    STATUS        IP_ADDRESS         PHYSPAGES         SWAPPAGES         DISKSPACE  CPUUNITS
+----------------------------------------------------------------------------------------------------------------------------------
+   101     kangaroo_gold     5970b35   running   192.168.230.101            0:256M            0:512M           2G:2.2G      1000
+----------------------------------------------------------------------------------------------------------------------------------
+</code></pre>
+
+<p>ここでは、kangaroo_goldなんて名前でコンテナが作られたのがわかりますね。その他、稼働状況やIPアドレス、メモリやディスク、CPUリソースの割り当てなんかも、この一覧で見ることができます。COMMITについては後ほど解説します。</p>
+
+<h2>コンテナの中で何かを実行する</h2>
+
+<p>出来上がったコンテナにmysql-serverを入れてみます。コンテナに対して変更を加える際、基本的には vzn exec コマンドを通して実際のコマンドを実行します。vzn exec コマンドは、指定したコンテナにて、与えられたコマンドをコンテナのroot権限で実行します。文法は以下の通り。</p>
+
+<pre><code>vzn exec [コンテナIDまたはコンテナ名] [実行させたいコマンド]
+</code></pre>
+
+<p>その前に、yum updateを実行して、パッケージ情報の更新をしておきましょう。</p>
+
+<pre><code>vzn exec kangaroo_gold yum -y update
+</code></pre>
+
+<h2>mysql-serverを入れてみる</h2>
+
+<p>ではいよいよmysqlのインストールです。今回はyumを使ってインストールしてみます。</p>
+
+<p>centos6でyumを使ってmysqlを入れる場合には yum install mysql-server などのようなコマンドを実行すると思いますが、それをほぼそのまま vzn exec コマンドの引数として渡してあげるのです。</p>
+
+<pre><code>vzn exec kangaroo_gold yum install mysql-server
+</code></pre>
+
+<p>しかし、このままですとmysql-serverはインストールできません。どうして？それは、通常yum installは本当に指定したパッケージをインストールするかどうかをy/nで質問してきますし、デフォルトがNなので、インストールされずにコマンドが終了してしまうのです。ですので、実際にmysql-serverをインストールしたければ、</p>
+
+<pre><code>vzn exec kangaroo_gold yum -y install mysql-server
+</code></pre>
+
+<p>とする必要があります。実際に実行してみると、以下のように特に問題なくインストールされました。</p>
+
+<pre><code>~$ vzn exec kangaroo_gold yum -y install mysql-server
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: ftp.tsukuba.wide.ad.jp
+ * extras: ftp.tsukuba.wide.ad.jp
+ * updates: ftp.tsukuba.wide.ad.jp
+Setting up Install Process
+Resolving Dependencies
+--&gt; Running transaction check
+---&gt; Package mysql-server.x86_64 0:5.1.73-3.el6_5 will be installed
+--&gt; Processing Dependency: mysql = 5.1.73-3.el6_5 for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Processing Dependency: perl-DBI for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Processing Dependency: perl-DBD-MySQL for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Processing Dependency: perl(DBI) for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Processing Dependency: libmysqlclient_r.so.16(libmysqlclient_16)(64bit) for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Processing Dependency: libmysqlclient.so.16(libmysqlclient_16)(64bit) for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Processing Dependency: libmysqlclient_r.so.16()(64bit) for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Processing Dependency: libmysqlclient.so.16()(64bit) for package: mysql-server-5.1.73-3.el6_5.x86_64
+--&gt; Running transaction check
+---&gt; Package mysql.x86_64 0:5.1.73-3.el6_5 will be installed
+---&gt; Package mysql-libs.x86_64 0:5.1.73-3.el6_5 will be installed
+---&gt; Package perl-DBD-MySQL.x86_64 0:4.013-3.el6 will be installed
+---&gt; Package perl-DBI.x86_64 0:1.609-4.el6 will be installed
+--&gt; Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package               Arch          Version               Repository      Size
+================================================================================
+Installing:
+ mysql-server          x86_64        5.1.73-3.el6_5        updates        8.6 M
+Installing for dependencies:
+ mysql                 x86_64        5.1.73-3.el6_5        updates        894 k
+ mysql-libs            x86_64        5.1.73-3.el6_5        updates        1.2 M
+ perl-DBD-MySQL        x86_64        4.013-3.el6           base           134 k
+ perl-DBI              x86_64        1.609-4.el6           base           705 k
+
+Transaction Summary
+================================================================================
+Install       5 Package(s)
+
+Total download size: 12 M
+Installed size: 33 M
+Downloading Packages:
+--------------------------------------------------------------------------------
+Total                                           4.7 MB/s |  12 MB     00:02     
+Running rpm_check_debug
+Running Transaction Test
+Transaction Test Succeeded
+Running Transaction
+  Installing : mysql-libs-5.1.73-3.el6_5.x86_64                             1/5 
+  Installing : perl-DBI-1.609-4.el6.x86_64                                  2/5 
+  Installing : perl-DBD-MySQL-4.013-3.el6.x86_64                            3/5 
+  Installing : mysql-5.1.73-3.el6_5.x86_64                                  4/5 
+  Installing : mysql-server-5.1.73-3.el6_5.x86_64                           5/5 
+  Verifying  : perl-DBD-MySQL-4.013-3.el6.x86_64                            1/5 
+  Verifying  : mysql-libs-5.1.73-3.el6_5.x86_64                             2/5 
+  Verifying  : mysql-server-5.1.73-3.el6_5.x86_64                           3/5 
+  Verifying  : mysql-5.1.73-3.el6_5.x86_64                                  4/5 
+  Verifying  : perl-DBI-1.609-4.el6.x86_64                                  5/5 
+
+Installed:
+  mysql-server.x86_64 0:5.1.73-3.el6_5                                          
+
+Dependency Installed:
+  mysql.x86_64 0:5.1.73-3.el6_5           mysql-libs.x86_64 0:5.1.73-3.el6_5    
+  perl-DBD-MySQL.x86_64 0:4.013-3.el6     perl-DBI.x86_64 0:1.609-4.el6         
+
+Complete!
+</code></pre>
+
+<p>ついでにmysqldを起動してみましょう。これもvzn exec 経由で行います。</p>
+
+<pre><code>~$ vzn exec kangaroo_gold service mysqld start
+Initializing MySQL database:  Installing MySQL system tables...
+OK
+Filling help tables...
+OK
+
+To start mysqld at boot time you have to copy
+support-files/mysql.server to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+
+/usr/bin/mysqladmin -u root password 'new-password'
+/usr/bin/mysqladmin -u root -h kangaroo_gold password 'new-password'
+
+Alternatively you can run:
+/usr/bin/mysql_secure_installation
+
+which will also give you the option of removing the test
+databases and anonymous user created by default.  This is
+strongly recommended for production servers.
+
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+cd /usr ; /usr/bin/mysqld_safe &amp;
+
+You can test the MySQL daemon with mysql-test-run.pl
+cd /usr/mysql-test ; perl mysql-test-run.pl
+
+Please report any problems with the /usr/bin/mysqlbug script!
+
+[  OK  ]
+Starting mysqld:  [  OK  ]
+</code></pre>
+
+<p>特に問題なく起動できました。あと、コンテナが起動したら一緒にmysqldが起きるように設定しましょう。</p>
+
+<pre><code>~$ vzn exec kangaroo_gold chkconfig mysqld on
+</code></pre>
+
+<p>これでコンテナが起動したときにmysqldが起き上がるようになりました。</p>
+
+<h2>コンテナの中に入り込んでみよう</h2>
+
+<p>これまで、コンテナでいくつかのコマンドを実行するのにvzn execコマンドを通してきました。</p>
+
+<p>何故かというと、vzn execコマンドは「コンテナに変更を加える場合に使う」べきコマンドだからでして、実際どれもコンテナに変更を加えるものばかりを実行してきたわけです。</p>
+
+<p>では、例えば「mysqldの起動状況を確認したい」といったような、「コンテナに変更を加えない」ことを行う場合にはどうすればいいのでしょうか。それは vzn enterコマンドを使って、直接コンテナの中に入り込んで確認すると良いのです。vzn enterの文法は以下の通りです。</p>
+
+<pre><code>vzn enter [コンテナIDまたはコンテナ名]
+</code></pre>
+
+<p>実際にmysqldの起動状況を見てみましょう。</p>
+
+<pre><code>~$ vzn enter kangaroo_gold
+entered into CT 101
+[root@kangaroo_gold /]# service mysqld status
+mysqld (pid  865) is running...
+</code></pre>
+
+<p>起動してますね。なお、exitコマンドで、enterしたコンテナのシェルから抜けることができます。</p>
+
+<p>※ <a href="/entry/2014-06-25-16-11-35_3.html">(3)へ続く</a>。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/b32.4S525ZUDWPTZFMHFUKBQ.html">仮想環境</a></li>
+      <li><a href="/tag/openvz.html">openvz</a></li>
+      <li><a href="/tag/VZNope.html">VZNope</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-06-26 14:24</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-06-26 16:50</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

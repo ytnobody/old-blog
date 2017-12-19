@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+BigQueryでクエリを発行して他のデータストアに丸投げするには | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2015-02-10-16-49-34.html">函館現状報告</a>
+    <li class="next">next: <a href="/entry/2015-03-26-16-06-59.html">tutumの新機能&quot;Stacks&quot;を使ってみる</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>BigQueryでクエリを発行して他のデータストアに丸投げするには</h1>
+
+<h2>答え：「bq query を使え」</h2>
+
+<p>さすがにこれだけだと味気のないエントリになるので、大まかに補足しますと、例えばElasticsearchなどのデータストアは、APIにJSONを食わせることでデータを格納することが可能だったりします。</p>
+
+<p>そう、JSONを食わせればいいのであれば、BigQueryのリザルトセットをJSONで受け取ればいいのです！！！！</p>
+
+<p>例えばこういうコマンドを発行してやると・・・</p>
+
+<pre><code>bq query -q --format json 'SELECT path, count(*) FROM blog.access_log WHERE time &gt;= "2015-03-19 00:00:00" AND time &lt; "2015-03-20 00:00:00" AND path like "%.html" GROUP BY path;'
+</code></pre>
+
+<p>このようなレスポンスを得られます。（整形してあります。実際には1行です。）</p>
+
+<pre><code>[
+    {"path":"/entry/2014-07-22-17-20-29.html","cnt":"1"},
+    {"path":"/entry/2014-12-01-23-49-57.html","cnt":"18"},
+    {"path":"/entry/2014-10-23-18-58-39.html","cnt":"5"},
+    {"path":"/entry/2014-12-21-12-25-25.html","cnt":"8"},
+    {"path":"/entry/2014-04-28-18-50-48.html","cnt":"19"},
+    {"path":"/entry/2014-06-16-18-14-18.html","cnt":"20"},
+    {"path":"/entry/2014-03-11-15-56-10.html","cnt":"1"},
+    {"path":"/entry/2014-09-17-12-10-31.html","cnt":"1"},
+    {"path":"/entry/2014-06-25-16-11-35_3.html","cnt":"1"},
+    {"path":"/entry/2014-11-07-18-07-44.html","cnt":"5"},
+    {"path":"/tag/openvz.html","cnt":"1"},
+    {"path":"/entry/2014-03-11-11-44-05.html","cnt":"6"},
+    {"path":"/entry/2015-01-12-15-14-00.html","cnt":"6"},
+    {"path":"/entry/2015-01-18-11-04.html","cnt":"2"},
+    {"path":"/entry/2014-11-06-18-42-10.html","cnt":"1"},
+    {"path":"/entry/2014-05-26-12-11-49.html","cnt":"2"},
+    {"path":"/entry/2013-11-18-15-35-29.html","cnt":"1"},
+    {"path":"/entry/2013-09-09-18-49-25.html","cnt":"1"},
+    {"path":"/entry/2014-05-28-16-09-44.html","cnt":"2"},
+    {"path":"/entry/2013-09-06-16-31-29.html","cnt":"1"},
+    {"path":"/entry/2014-08-23-22-47-25.html","cnt":"1"},
+    {"path":"/entry/2014-04-28-14-14-55.html","cnt":"1"},
+    {"path":"/entry/2014-06-06-13-07-29.html","cnt":"1"},
+    {"path":"/tag/yapc.html","cnt":"1"},
+    {"path":"/entry/2014-09-05-16-14-43.html","cnt":"1"},
+    {"path":"/entry/2015-02-10-16-49-34.html","cnt":"1"},
+    {"path":"/entry/2014-11-09-09-25-05.html","cnt":"1"}
+]
+</code></pre>
+
+<p>ちなみに↑のデータは、昨日の当ブログのアクセスログを解析して、どのページがどのくらいリクエストされているのかをトレースしたものです(TOPページ除く) 。全然読まれていないですね！！！！まーそんなもんです！ｗ</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/bigquery.html">bigquery</a></li>
+      <li><a href="/tag/memo.html">memo</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-03-20 19:01</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-03-20 19:01</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

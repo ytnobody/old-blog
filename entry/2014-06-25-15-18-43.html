@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+PostScript::Easyを抹消した話 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-06-22-00-44-52.html">hachiojipm 41 で老害っぷりを発揮してきた</a>
+    <li class="next">next: <a href="/entry/2014-06-25-16-11-35.html">VZNopeというOpenVZ wrapperの紹介 (1)</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>PostScript::Easyを抹消した話</h1>
+
+<p>以前<a href="http://blog.ytnobody.net/entry/2014-06-05-15-30-54.html">Vector::QRCode::EPS+cartonの深淵から脱出した話</a>というエントリを書いたが、その後進展があったので、書いておこうと思う。</p>
+
+<h2>PostScript::Simpleの作者は見ていた</h2>
+
+<p>前回のエントリで、PostScript::Simple作者のTwitterに、「最悪の英語力で連絡してみる」として、co-maintainerにしてほしい旨お願いをしていた。その数日後、彼から「githubにレポジトリ作っておいたからpullreqおくってくれよな！」という内容のメンションが帰ってきたのだった。</p>
+
+<p>僕は早速その<a href="https://github.com/mcnewton/postscript-simple">レポジトリ</a>に<a href="https://github.com/mcnewton/postscript-simple/pull/1">pullreqを送った</a>。それは数時間後にはマージされた。</p>
+
+<p>また、彼は数年の間に溜め込まれた諸々の問題点などを<a href="https://github.com/ytnobody/PostScript-Easy/issues/2">修正</a>し、数日後に<a href="https://metacpan.org/release/PostScript-Simple">PostScript::Simple 0.08</a>をリリースした。</p>
+
+<h2>Vector::QRCode::EPSの依存をPostScript::Simpleに戻した</h2>
+
+<p>結果的にメンテナが活動を再開したので、PostScript::EasyはCPANから削除することにした。これは<a href="https://github.com/ytnobody/PostScript-Easy/issues/1">こちらのissue</a>にある通りで、新しい機能を追加する予定のあるプロジェクトではなかったためであり、もし今後新機能の追加要望があった場合も、PostScript::Simpleにpullreqすれば済むからである。※ご教示くださったcharsbarさんに、この場を借りてお礼申し上げます。ありがとうございます。</p>
+
+<p>また、一旦PostScript::Easyに依存していたVector::QRCode::EPSについても、PostScript::Simpleを使うように変更し、<a href="https://metacpan.org/release/Vector-QRCode-EPS">Vector::QRCode::EPS 0.05</a>としてリリースした。</p>
+
+<h2>教訓とまとめ</h2>
+
+<ul>
+<li><p>メンテナと連絡が取れない場合も、とりあえずtwitterやgithubを探してみよう。案外本人と思われる人物がいるかもしれない。</p></li>
+<li><p>もしコンタクトを取った先が同姓同名の別人だったとしても、大抵の場合謝罪で済むはず。土下座は古来より日本最強の武器であり防具なのだ。</p></li>
+<li><p>とはいえ、いきなり知らない人間からSNSで何か言われたら、自分だったらギョッとするかもしれない。だからせめて、「自分が何者なのか」「いまどういう状況なのか」「何を頼みたいのか」「なぜそうして欲しいのか」をはっきり伝えよう。</p></li>
+<li><p>色々教えてくれる人の意見に耳を傾けよう。そして今後の行動方針に反映させよう。</p></li>
+<li><p>大袈裟に言うと、ほんの少しだけ世界を変えました。</p></li>
+</ul>
+
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-06-25 15:49</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-06-25 19:24</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

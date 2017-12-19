@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Plack::Response::AutoEncode を作ったらすぐに死んだので原因を書き留めておく | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2013-09-24-11-24-49.html">Dispatcher::Small というモジュールをリリースしました</a>
+    <li class="next">next: <a href="/entry/2014-01-06-15-38-35.html">Mishima.pm #0 に行ってきたお話</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Plack::Response::AutoEncode を作ったらすぐに死んだので原因を書き留めておく</h1>
+
+<p>先週の金曜日に <a href="https://github.com/ytnobody/Plack-Response-AutoEncode">Plack::Response::AutoEncode</a> というものを作ってshipitした。どういうものか掻い摘んで書くと、アプリケーションのレスポンスにおいて、Content-Typeがtext/* のときにcharsetに応じてcontent-bodyをencodeするという物で、見ての通りPlack::Responseのサブクラスとして定義した。</p>
+
+<p>その数十分後、僕はなかなか激しい（今思うと至極真っ当な）皮肉を目にすることになる。まとめると、「こんなものあげるな」ということらしい。
+とはいえ、理由も聞かされないまま突然そんなこと言われても、こちらとしては皆目ダメな点がわからない。</p>
+
+<h2>ダメな理由</h2>
+
+<p>というわけで、ほとぼりが冷めたであろう週明け（今日ですね）に、改めてなんでダメなのかを当の本人に教えていただいた。
+曰く、PSGIの仕様としてはcontent-bodyはbyte-codeを期待していて、P::Res::AutoEncodeをつかうと、その前提が覆ってしまい、結果的に相反しているのではないか？ということらしい。
+まったくその通りだったので、すぐにPAUSEから削除予約を行った。
+また、作った理由についても念のため説明（毎回encodeするのが微妙ではないか?と思ったため）したが、それはあくまでApplication側でやるべきことだという、これも今思うと当たり前の指摘をいただいた。</p>
+
+<h2>まとめ</h2>
+
+<ul>
+<li>インターフェース仕様を破壊するようなものはCPANに上げるべきではない</li>
+<li>そういうものはAppレイヤーでやるべき</li>
+<li>PrePANしとくべきだった</li>
+</ul>
+
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/memo.html">memo</a></li>
+      <li><a href="/tag/failure.html">failure</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2013-11-18 15:58</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2013-11-18 16:19</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

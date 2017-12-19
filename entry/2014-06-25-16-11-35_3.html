@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+VZNopeというOpenVZ wrapperの紹介 (3) | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-06-25-16-11-35_2.html">VZNopeというOpenVZ wrapperの紹介 (2)</a>
+    <li class="next">next: <a href="/entry/2014-07-07-13-28-27.html">Otogiri-0.13 has been released</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>VZNopeというOpenVZ wrapperの紹介 (3)</h1>
+
+<p><a href="/entry/2014-06-25-16-11-35_2.html">前回のエントリはこちら</a></p>
+
+<h2>コンテナの設定手順書を出力してみる</h2>
+
+<p>前回までのエントリで、mysqldが稼働してるコンテナを作りました。ではこれをもう一つ作りましょう。</p>
+
+<p>なになに、「もう一度同じ作業をするの？めんどくさい！」ですって？そうでしょうそうでしょうw</p>
+
+<p>そんな時はvznfileを使うのが便利です。vznfileとは、chefのrecipeやansibleのplaybookのような存在で（もっと貧弱ですけど）、コンテナの設定手順書のようなものです。vznfileはtextで記述されていますので、人間が見ても分かりやすいと思います。また、行頭に# を配置することでコメントを書くこともできます。</p>
+
+<p>さて、前回作成したばかりのコンテナについて、設定手順が記述されているvznfileを出力する方法があります。それがvzn vznfileコマンドです。文法は以下の通りです。</p>
+
+<pre><code>vzn vznfile [コンテナIDまたはコンテナ名]
+</code></pre>
+
+<p>vzn vznfileコマンドを実行すると、以下のような感じで、標準出力にだばーっとvznfileの中身が吐き出されます。</p>
+
+<pre><code>~$ vzn vznfile kangaroo_gold
+create centos
+set --nameserver 8.8.8.8
+start
+exec yum -y update
+exec yum -y install mysql-server
+exec service mysqld start
+exec chkconfig mysqld on
+</code></pre>
+
+<p>見ていただければ何となくわかるかもしれませんが、基本的にはcreateからstartのくだり以外は「vzn execしてexit値が0だった物が記録されている」だけの代物です。そんなわけなので「vzn execはコンテナに変更を加える際に利用すべき」ということなのです。</p>
+
+<p>ちょっと脱線しましたが、vzn vznfileで出力された結果を適当なファイルに保存します。</p>
+
+<pre><code>vzn vznfile kangaroo_gold &gt; my_container.vznfile
+</code></pre>
+
+<p>拡張子は何でもいいのですが、便宜的に.vznfileとか.vznとかつけるといいんじゃないでしょうか。</p>
+
+<h2>vznfileを元にコンテナをセットアップする</h2>
+
+<p>vznfileを読み込んで新しいコンテナをセットアップするコマンドがvzn buildです。文法は以下の通り。</p>
+
+<pre><code>vzn build [新しいコンテナID] [オプション] &lt; [vznfile]
+</code></pre>
+
+<p>察しの良い方はお気づきでしょうが、以下のようにすると、vznfileの出力からコンテナのセットアップまでをまとめて実行してくれます。</p>
+
+<pre><code>vzn vznfile [既存のコンテナID] | vzn build [新しいコンテナID] [オプション]
+</code></pre>
+
+<p>では実際にvzn buildコマンドを使ってコンテナをもう1つセットアップしてみましょう。</p>
+
+<pre><code>~$ vzn build 102 &lt; my_container.vznfile 
+[CT:102] RUN: create centos
+Name fire_hippo assigned
+Creating container private area (centos-6-x86_64)
+
+    (中略)
+
+[master (root-commit) 74a9dc7] created
+ 2 files changed, 43 insertions(+)
+ create mode 100644 container.conf
+ create mode 100644 vznfile
+# On branch master
+nothing to commit, working directory clean
+[CT:102] RUN: set --nameserver 8.8.8.8
+CT configuration saved to /etc/vz/conf/102.conf
+[master 09cf400] set --nameserver 8.8.8.8
+ 1 file changed, 1 insertion(+)
+[CT:102] RUN: start 
+Starting container...
+
+    (中略)
+
+okay.
+[master 830b45a] start
+ 1 file changed, 1 insertion(+)
+[CT:102] RUN: exec yum -y update
+Loaded plugins: fastestmirror
+Setting up Update Process
+Resolving Dependencies
+--&gt; Running transaction check
+---&gt; Package audit-libs.x86_64 0:2.2-2.el6 will be updated
+
+    (中略)
+
+Complete!
+[master e75e662] exec yum -y update
+ 1 file changed, 1 insertion(+)
+[CT:102] RUN: exec yum -y install mysql-server
+Loaded plugins: fastestmirror
+Determining fastest mirrors
+ * base: www.ftp.ne.jp
+ * extras: www.ftp.ne.jp
+ * updates: www.ftp.ne.jp
+Setting up Install Process
+Resolving Dependencies
+--&gt; Running transaction check
+---&gt; Package mysql-server.x86_64 0:5.1.73-3.el6_5 will be installed
+
+    (中略)
+
+Installed:
+  mysql-server.x86_64 0:5.1.73-3.el6_5                                          
+
+Dependency Installed:
+  mysql.x86_64 0:5.1.73-3.el6_5           mysql-libs.x86_64 0:5.1.73-3.el6_5    
+  perl-DBD-MySQL.x86_64 0:4.013-3.el6     perl-DBI.x86_64 0:1.609-4.el6         
+
+Complete!
+[master f9527f5] exec yum -y install mysql-server
+ 1 file changed, 1 insertion(+)
+[CT:102] RUN: exec service mysqld start
+Initializing MySQL database:  Installing MySQL system tables...
+OK
+Filling help tables...
+OK
+
+    (中略)
+
+Starting mysqld:  [  OK  ]
+[master f479d59] exec service mysqld start
+ 1 file changed, 1 insertion(+)
+[CT:102] RUN: exec chkconfig mysqld on
+[master 5c566d9] exec chkconfig mysqld on
+ 1 file changed, 1 insertion(+)
+</code></pre>
+
+<p>やたら長いログですが、ともあれこれでコンテナID102にmysqldが動いてるはずです。確認しましょう。</p>
+
+<pre><code>~$ vzn list
+  VEID              NAME      COMMIT    STATUS        IP_ADDRESS         PHYSPAGES         SWAPPAGES         DISKSPACE  CPUUNITS
+----------------------------------------------------------------------------------------------------------------------------------
+   101     kangaroo_gold     5970b35   running   192.168.230.101            0:256M            0:512M           2G:2.2G      1000
+   102        fire_hippo     5c566d9   running   192.168.230.102            0:256M            0:512M           2G:2.2G      1000
+----------------------------------------------------------------------------------------------------------------------------------
+~$ vzn enter fire_hippo
+entered into CT 102
+[root@fire_hippo /]# service mysqld status
+mysqld (pid  844) is running...
+</code></pre>
+
+<p>mysqldが稼働してますね。</p>
+
+<p>ちなみに、もう一度同じコンテナに同じ内容のvznfileを通したらどうなるのでしょう。やってみます。</p>
+
+<pre><code>~$ vzn build 102 &lt; my_container.vznfile 
+SKIP: create centos
+already committed (74a9dc7)
+
+SKIP: set --nameserver 8.8.8.8
+already committed (09cf400)
+
+SKIP: start
+already committed (830b45a)
+
+SKIP: exec yum -y update
+already committed (e75e662)
+
+SKIP: exec yum -y install mysql-server
+already committed (f9527f5)
+
+SKIP: exec service mysqld start
+already committed (f479d59)
+
+SKIP: exec chkconfig mysqld on
+already committed (5c566d9)
+</code></pre>
+
+<p>スキップされてしまいましたね。</p>
+
+<p>これはどういう事かといいますと、vznfileは各コンテナごとにgitでバージョン管理されており、vznfileの1行ごとに処理を実行し、exit値が0だった場合に限りgit commitを行います（それ以外の場合は即座にbuildを停止します）。</p>
+
+<p>また、既に実行した処理については、ご覧の通り処理をスキップするようになっています。</p>
+
+<p>そのため、結果的に冪等性の担保につながっているのです（専門の方に言わせると「ナンチャッテ」なのかもしれませんが・・・）。</p>
+
+<p>ちなみに vzn list したときのCOMMITは、コンテナごとに管理されているvznfileのcommit-hashだったりします。</p>
+
+<h2>いらなくなったコンテナを削除する</h2>
+
+<p>もうつかわないコンテナを削除するにはvzn destroyコマンドを使います。文法は以下の通りです。</p>
+
+<pre><code>vzn destroy [コンテナIDまたはコンテナ名]
+</code></pre>
+
+<p>では、今回作ったコンテナを2つとも削除します。</p>
+
+<pre><code>~$ vzn destroy fire_hippo
+Stopping container ...
+Container was stopped
+Container is unmounted
+Destroying container private area: /var/lib/vz/private/102
+Container private area was destroyed
+
+~$ vzn destroy kangaroo_gold
+Stopping container ...
+Container was stopped
+Container is unmounted
+Destroying container private area: /var/lib/vz/private/101
+Container private area was destroyed
+</code></pre>
+
+<p>これでコンテナの削除ができました。</p>
+
+<h2>おわりに。またの名を自問自答タイム。</h2>
+
+<p>作ってまだ間もないこともあり、そこまで成熟されているわけではないVZNopeですが、ちょっとした仮想サーバを用意したい、みたいな用途には気軽につかるような代物だと思っています。よかったら、試してみてもらえるとうれしいです。</p>
+
+<p>さて、以下自問自答タイム。</p>
+
+<h3>「Dockerでいいじゃん？」</h3>
+
+<p>基本的にDockerで間に合ってるならDocker使うといいと思います。あと、僕も部分的にはDockerつかってますし、それらをVZNopeで置き換えとか考えるだけ無駄だとおもいます。</p>
+
+<h3>「使いどころは？」</h3>
+
+<p>OpenVZとターゲットが一緒です。当たり前ですね。なんせOpenVZのラッパーなんですから。</p>
+
+<h3>「goでかかないのなんで？」</h3>
+
+<p>とりあえずさっさと動く物がほしかったので、慣れた言語で書いた次第です。</p>
+
+<p>go力高めるためにportingするのも面白いかもしれませんが、openvzってどこまでAPI提供してるの？って話になりますし、libvirtつかうの？的な感じもしていて、なんだか微妙だとおもいます。</p>
+
+<p>そのままportingするのは徒労に終わるだけに思えますし、むしろbashだけで書いた方がスッキリするようにも思えます。</p>
+
+<h3>「誰が使うの？」</h3>
+
+<p>ぼくです。だめですか？</p>
+
+<h3>「バグがある」「意見したい」「マサカリを（ry」</h3>
+
+<p><a href="https://github.com/ytnobody/VZNope/issues/new">こちら</a>にどうぞ。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/b32.4S525ZUDWPTZFMHFUKBQ.html">仮想環境</a></li>
+      <li><a href="/tag/openvz.html">openvz</a></li>
+      <li><a href="/tag/VZNope.html">VZNope</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-06-26 16:49</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-06-26 16:57</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

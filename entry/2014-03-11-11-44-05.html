@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+TwitterのAPIKey新規取得にモバイルの連絡先が必要になっていたので攻略する | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-02-28-18-04-09.html">Vector::QRCode::IntoPDFというモジュールを作った</a>
+    <li class="next">next: <a href="/entry/2014-03-11-15-56-10.html">Kodingをつかって手軽にPerl入学式 #6をやるためのセットアップスクリプトをかいた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>TwitterのAPIKey新規取得にモバイルの連絡先が必要になっていたので攻略する</h1>
+
+<p>最近のことですけど、Twitter連携アプリを作ろうとしたんですね。</p>
+
+<p>で、APIKeyが必要なので、<a href="http://dev.twitter.com/">dev.twitter.com</a>にアプリケーション登録を行おうとしたところですね、英語で</p>
+
+<blockquote><p>「携帯の番号か携帯のメアドを登録せんとあかんで（超訳」</p></blockquote>
+
+<p>的なことを言われたわけです。</p>
+
+<p>あのお気軽お気楽にAPIKeyを取得できる時代に終焉が訪れた、というところでしょうか。非常に難儀な話です。</p>
+
+<h2>とりあえず携帯のメアドを登録してみたが・・・</h2>
+
+<p>どうやらDDIポケット時代から愛用しているメールアドレス(********@dk.pdx.ne.jp) では許してくれない様子でした。</p>
+
+<h2>実はちょっとした騒ぎになってる模様</h2>
+
+<p>あまりにもつらいので、google先生に訊いてみました。</p>
+
+<p>[twitter API 登録 モバイル] <a href="https://www.google.co.jp/search?q=twitter+API+登録+モバイル">[検索]</a></p>
+
+<p>とかやると、まー出るわ出るわ・・・</p>
+
+<h2>俺は！まだ！あきらめない！</h2>
+
+<p>Yahoo知恵袋で同じようなことを質問してる人もいる様でしたが、色々調べていると「iPhoneのTwitter公式appでログインすれば通るようになる」とかあったので、これを試してみました。</p>
+
+<p>が、結果はダメ。</p>
+
+<h2>最悪のアフォーダンス</h2>
+
+<p>次に気になったのが<a href="http://otapps.net/archives/1721">こちらの記事</a>。</p>
+
+<blockquote><p>twitter.com（devじゃない方）のアカウント設定から、言語設定を英語にすることで、ドキュメントにある通りの、携帯番号の登録が可能になります。</p></blockquote>
+
+<p>そう。そもそも僕が最初に見た限り、dev.twitter.comでは日本の携帯事業者を選択できない状態でした。</p>
+
+<p>それが何と「言語設定を英語にする」ことで可能になるというアプローチが必要だった模様です。最悪レベルのアフォーダンスなので、本当に修正してほしい。</p>
+
+<p>早速、twitter側の言語設定を英語にしてみたところ、あっけなくAPIKeyの登録に成功。</p>
+
+<p>もしかしたら、DDIポケットのメアドを登録してたり、iPhone上の公式Appでログインしてたりしたからかもしれませんが、電話番号を登録することなく目的を達成できました。</p>
+
+<h2>教訓</h2>
+
+<p><strong>twitterは言語設定を英語にすべし。</strong></p>
+
+<p>・・・ほんとにこれでいいんだろうかww</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/memo.html">memo</a></li>
+      <li><a href="/tag/failure.html">failure</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-03-11 12:44</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-03-11 12:44</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

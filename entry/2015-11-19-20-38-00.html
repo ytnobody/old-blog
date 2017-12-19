@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+なぜなにTutum - いまTutumをオススメする12の理由 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2015-10-22-20-05-32.html">Ukigumo入りのDocker Imageが欲しかったので作りました</a>
+    <li class="next">next: <a href="/entry/2015-12-05-18-50-00.html">二千万レコードあるテーブルへのalterをサービスを止めずに流す</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>なぜなにTutum - いまTutumをオススメする12の理由</h1>
+
+<p>※このエントリは実は<a href="http://qiita.com/advent-calendar/2015/docker">Docker Advent Calendar 2015</a> の1日目のエントリだったんだよ！</p>
+
+<p>おはこんばんちわ！ytnobodyです。最近はすっかりDockerおじさんとなってしまいましたが、僕がdockerコンテナを管理するのに使っている<a href="http://www.tutum.co/">Tutum</a>について、改めて紹介しておきたいと思います。</p>
+
+<h2>DockerとTutumの関係性</h2>
+
+<p>Dockerが世に出回って結構な月日が経ちましたが、webアプリ開発者の観点から見た時に、コンテナのデプロイ及び管理を行う仕組みとして決定打といえるプロダクトはこれまでありませんでした。</p>
+
+<p>ところが数週間前、<a href="http://jp.techcrunch.com/2015/10/22/20151021docker-acquires-cloud-startup-tutum-for-container-shipping-and-management/">DockerがTutumを買収してコンテナアプリケーションの稼働管理サービスを充実  |  TechCrunch Japan</a> というニュースが報じられました。
+これはDocker自身が、従来のコンテナ管理/デプロイ手法について不足を感じており、それに対する適切なソリューションとしてTutumに目をつけた、ということだと思います。</p>
+
+<p>元々Tutumはこれまでもdocker composeの下地となる技術へのコミットや有用なイメージの公開などを通して、Dockerとは非常に密なつながりを持ち続けてきました。</p>
+
+<p>そしてつい先日、とうとう <a href="http://www.publickey1.jp/blog/15/docker_container_as_a_service.html">Dockerが「Container as a Service」展開へ。IaaSモデルやPaaSモデルはコンテナの展開にとって適切ではないと。DockerCon Europe 2015 － Publickey</a> というニュースで、Tutumのエンタープライズ向けとも言える「Docker Universal Control Plane」が明らかになりました。</p>
+
+<h2>そもそもTutumとは？</h2>
+
+<p><a href="http://www.tutum.co/">Tutum</a>について大まかに説明すると、「dockerコンテナを任意のIaaSやサーバにデプロイし、管理するサービス」となります。</p>
+
+<p>dockerコンテナの管理という目的であれば、他にもkubernetes(k8s)を使った方法や、fleetとetcdを組み合わせる方法などもあるようですが（興味のある方はそちらについても調べてみると良いかと思います）、僕は断然Tutumをオススメします。</p>
+
+<h2>理由その１：ダッシュボードがわかりやすくてカッコイイ</h2>
+
+<p>まず、このダッシュボードをみてください。</p>
+
+<p><img src="http://ytnobody.net/impress/tutum-dashboard.png" alt="tutum dashboard" /></p>
+
+<p>どう見てもかっこいいです。フラットデザインでクリーンな印象を与えてくれますね。そして一つ一つのボタンやタブについて必ずシンプルな説明とアイコンが記載されています。多少英語の知識が必要ですが、一目見ただけで何をするボタンなのかが直感的にわかりますね。</p>
+
+<p>また、Welcomeタブをクリックすると、初心者でもわかりやすいように、ステップバイステップでツアーが見れるようになっています。</p>
+
+<p><img src="http://ytnobody.net/impress/tutum-tour.png" alt="tutum welcome" /></p>
+
+<p>このように徹底したUXへのこだわりと利用を諦めさせない努力の結果として、初心者でも躓きにくいと僕は感じました。</p>
+
+<h2>理由その２：Private Registryがついてくる</h2>
+
+<p>dockerを使っていると、そのうち自分用のイメージを作るようになると思います。そのうちに、作ったイメージをどこからでもデプロイできるように大抵は「Docker Hub」で公開することになるわけですが、なんらかの理由で「公開できない」イメージが手元に出来上がった時、Private Registryを自前で運用することを考えることでしょう。</p>
+
+<p>ところがPrivate Registryの運用は思いのほか手間がかかり、dockerコンテナでのデータ永続性の確保が比較的煩雑であることから、早々に諦めてしまう人もいるのではないでしょうか。</p>
+
+<p>そんな人にもTutumはオススメです。なぜなら、自分で構築・運用しなくてもよい、<a href="https://support.tutum.co/support/solutions/articles/5000012183-using-tutum-s-private-docker-image-registry">フルマネージドなPrivate Registry</a>がついてくるのです。こんな楽なことは自前ではまずありえないですよ。</p>
+
+<h2>理由その３：dockerに関わるコマンドを覚えなくてもとりあえず使える</h2>
+
+<p>基本的にWebダッシュボードだけで全ての操作が可能ですので、コマンドの類を覚える必要がありません。</p>
+
+<p>強いて挙げるならば、自分でイメージを作るためにDockerfileの文法とdocker buildの使い方くらいは覚えないといけないですけど、おそらくこれらもそのうちエコシステムができるんじゃないかと思います（勝手な予想）。</p>
+
+<h2>理由その４：フルマネージドである</h2>
+
+<p>k8sやfleet+etcdはサーバにインストールして利用するツールですので、自分で面倒を見る必要がありますし、何か問題が発生したら自分で解決する必要があります。</p>
+
+<p>しかしtutumはフルマネージドなサービスですので、問題が出た時にはtutumのエンジニアチームが対応に当たりますし、ユーザ側の設定などに問題がある場合は適切なアドバイスを受けることができます。</p>
+
+<h2>理由その５：簡易的なモニタリングが可能</h2>
+
+<p><img src="http://ytnobody.net/impress/tutum-monitoring.png" alt="tutum monitoring" /></p>
+
+<p>webダッシュボードに、このような簡易的なモニタリングツールがついてきます。</p>
+
+<p>コンテナのパフォーマンスを知りたい時に、ちょっとした目安にできて便利です。</p>
+
+<h2>理由その６：SSHとサヨナラできる</h2>
+
+<p><img src="http://ytnobody.net/impress/tutum-terminal.png" alt="tutum terminal" /></p>
+
+<p>webダッシュボードに、このようなターミナル機能がついています。</p>
+
+<p>このおかげで、コンテナにsshdを同梱する必要は無くなりました。</p>
+
+<h2>理由その７：ロードバランシング機能がある</h2>
+
+<p>サービスにアクセスするためのTCPポートを固定にしてから複数のノードへコンテナをデプロイすると、サービスに「entrypoint url」というものが付与されます。</p>
+
+<p>これは各コンテナにリクエストをロードバランシングしてくれるURLでして、コンテナの数を動的に増減させても滞りなくリクエストを捌いてくれます。</p>
+
+<p>また、サービスに属するコンテナを複数のIaaSやオンプレを跨いでデプロイしてあった場合にも当然対応してくれます。</p>
+
+<h2>理由その８：Tutum Stackで簡単に構成管理ができる</h2>
+
+<p>Tutum Stackというのはいわばdocker composeと同等の機能なのですが、それをwebダッシュボードから利用できます。</p>
+
+<p>従って、コンテナの構成管理はyamlファイルたった一つだけで完結します。</p>
+
+<h2>理由その９：IaaS/オンプレ両方で利用できて足回りを選ばない</h2>
+
+<p>「Bring Your Own Node(通称BYON)」という機能を活用することによって、IaaSだけではなく、オンプレでも利用可能です。</p>
+
+<p>仕組みとしてはいたって簡単で、webダッシュボードから払い出されたワンライナーを対象サーバで実行すると、goで書かれたtutum-agentがインストールされ、webダッシュボードから管理ができるようになるというものです。</p>
+
+<p>この機能のおかげで、例えばさくらのVPSやノートPC(ただしx86_64アーキテクチャCPUの物に限る)などをDocker Hostとして利用することができますし、オンプレしか利用できないシーンでもクラウドの手法でコンテナの管理が可能となります。</p>
+
+<h2>理由その１０：APIとツールキットがある</h2>
+
+<p>Tutumには<a href="https://docs.tutum.co/v2/api/">API</a>および<a href="https://support.tutum.co/support/solutions/articles/5000049209-installing-the-command-line-interface-tool">コマンドラインツール</a>がありまして、webダッシュボードで可能なことは一通りCLIでもこなせる、という状況です。</p>
+
+<p>これによってプログラマブルなコンテナの管理が可能となっております。その気になればAWSのようにオートスケーリングも可能でしょう。</p>
+
+<h2>理由その１１：コミュニティが活発でTutumのコアメンバーがやたらフランク</h2>
+
+<p>Tutumにサインアップすると、slackチームへの参加が可能となります。</p>
+
+<p>基本的に英語でのコミュニケーションとなるのですが、Tutumの開発メンバーをはじめCEOのボルハ・ブルゴス(Borja Burgos)やCTOのフェルナンド・メイヨー・フェルナンデス(Fernando Mayo Fernández)、そして各国の熱心なTutumユーザたちが集っており、特にコアメンバーは紳士的かつフランクで質問などにもフランクに答えてくれます。</p>
+
+<h2>理由その１２：しっかりとしたサポートとナレッジベース</h2>
+
+<p>オンラインでのサポートが驚くほどしっかりしています。<a href="https://support.tutum.co/support/home">サポートホーム</a>には、よくある質問や今話題のトピックなどがずらりと並んでいます。ここに並んでいない質問がある場合は「新規トピックを作成」することでサポートを受けることができます。</p>
+
+<p>そしてサポート実績の蓄積からできている<a href="https://support.tutum.co/support/solutions">ナレッジベース</a>は内容が濃く検索性も高いので、これから本気で使い始める人にもオススメできます。</p>
+
+<h2>まとめ</h2>
+
+<p>Tutumは簡単便利で応用が利く、とてもクールなサービスでオススメです！</p>
+
+<h2>お知らせ</h2>
+
+<p>そんなTutumについてもっとDeepにカジュアルに語り合おう、という集まり「<a href="http://www.zusaar.com/event/6367004">Tutum Night Tokyo</a>」を、来る12/15(火) 19:30 に開催することになりました！</p>
+
+<p><a href="http://www.zusaar.com/event/6367004">こちらのzusaar</a>から参加登録できますので、皆様のご参加をお待ちしております！</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/tutum.html">tutum</a></li>
+      <li><a href="/tag/docker.html">docker</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-11-19 20:38</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-12-01 20:47</dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

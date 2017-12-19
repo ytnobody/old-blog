@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+tutumの新機能&quot;Stacks&quot;を使ってみる | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2015-03-20-18-43-49.html">BigQueryでクエリを発行して他のデータストアに丸投げするには</a>
+    <li class="next">next: <a href="/entry/2015-04-01-12-35-32.html">「プログラマ」やめるぞい</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>tutumの新機能"Stacks"を使ってみる</h1>
+
+<p>結構前に<a href="http://tutum.co/">tutum</a>の新機能である<a href="https://support.tutum.co/support/solutions/articles/5000569899">Stacks</a>がリリースされました。</p>
+
+<p>日本国内での数少ない（？）tutum愛用者としては手出しするしかない、というわけで触ってみた記録です。</p>
+
+<h2>そもそもStackとは？</h2>
+
+<p>Stackというものについて非常にざっくりと言うならば、複数のサービスをまとめあげた単位、というところでしょうか。</p>
+
+<p>サービスには１つ以上の同一構成のコンテナがぶら下がっています。これまでのtutumの機能では、サービス間の連携設定を指定するには、サービスの新規作成時・設定変更時に都度指定する必要がありました。</p>
+
+<p>しかしStackの登場によって、これらの問題を解決することができそうです。</p>
+
+<p>Stackを定義する際にはいくつか方法があるのですが、ここではStackの定義をYAMLファイルに記述しておき、Webダッシュボードを利用してStackをデプロイする方法を紹介しようと思います。</p>
+
+<h2>ダッシュボードからStacksを開いてみる</h2>
+
+<p>ダッシュボードの左上に"Stacks"と明記されたタブがありますので、それをクリックすると、下記画像のようになります。（<a href="https://support.tutum.co/support/solutions/articles/5000569899">tutumのサポート</a>から画像だけ借りてきました）</p>
+
+<p><a href="https://s.tutum.co/support/images/create-stack-wizard.png"><img src="https://s.tutum.co/support/images/create-stack-wizard.png" alt="create-stack-wizard" /></a></p>
+
+<p>"Stack name"には任意の名称を半角英数で入力すればOKです。"Stack file"には、後述するようなStack fileをYAML型式で記述し、アップロードする必要があります。</p>
+
+<h2>Stack fileをかいてみよう</h2>
+
+<p>さて、いよいよStack fileの記述をしていくわけですが、実は<a href="https://tutum.freshdesk.com/support/solutions/articles/5000583471">ここ</a>を読むと、大体書き方が解説してあります。</p>
+
+<p>とはいえ、英語つらい！という方のために解説しますと、大まかに以下のような感じで書くと良いです。</p>
+
+<pre><code>haproxy:
+  image: tutum/haproxy
+  ports:
+    - "8080:80"
+  links: 
+    - blog
+
+blog: 
+  image: ytnobody/docker-riji
+  ports:
+    - "80"
+  environment:
+    BLOG_REPO_URL: https://github.com/ytnobody/Riji-Vanilla.git
+  target_num_containers: 3
+</code></pre>
+
+<h3>サービス名</h3>
+
+<p>大まかに解説すると、<code>haproxy</code> とか <code>blog</code>って書かれている箇所は「サービス名」ですので、大体自由に命名して構いません。</p>
+
+<h3>image</h3>
+
+<p>そして、<code>image</code>には<a href="https://hub.docker.com/">Docker Hub</a>にアップされているイメージ名を指定してあげると、そのイメージを使ってコンテナを起こしてくれるようになります。</p>
+
+<h3>ports</h3>
+
+<p><code>ports</code>には、コンテナが外部に対してオープンするポート番号の指定内容を、リスト型式で書いていきます。</p>
+
+<p>いくつか書き方がありますが、<code>- "80"</code>のようにポート番号を１つのみ記述した場合、「ノードの任意のポートに、コンテナのtcp/80をひもづける」の意味になります。このような指定方法を<code>dynamic node port</code>と呼ぶようです。</p>
+
+<p>また、<code>- "8080:80"</code>のように、コロンで区切られたポート番号のペアを記述した場合、「ノードのtcp/8080に、コンテナのtcp/80をひもづける」の意味になります。</p>
+
+<p>ここで、何故blogコンテナのポート番号をdynamic node portにしたのかについては、<a href="http://blog.ytnobody.net/entry/2014-11-09-09-25-05.html">こちらのエントリ</a>を見ていただけると理解しやすいかと思います。</p>
+
+<h3>links</h3>
+
+<p><code>links</code>については、Dockerでいうところの<code>--link</code>オプションの事だと言えばわかるかもしれません。要するに、他のサービスにリンクすることで、環境変数を通して、リンク先サービスの接続に纏わる情報をゲット出来るようになるわけです。ここでこのようなことをしているのは、<code>tutum/haproxy</code>のドキュメントを見ると<a href="https://registry.hub.docker.com/u/tutum/haproxy/">書いてある</a>のですが、blogサービスの各コンテナへのロードバランシングを行うための設定です。しつこいようですが、このあたりのことについては<a href="http://blog.ytnobody.net/entry/2014-11-09-09-25-05.html">こちらのエントリ</a>を見ていただけると理解しやすいかと思います。</p>
+
+<p>※なお大事なことですが、ロードバランシング対象となるコンテナがexposeするportはtcp/80でなければいけません。これはtutum/haproxyの制約によるものです。ご注意を。</p>
+
+<h3>environment</h3>
+
+<p><code>environment</code>には、コンテナに渡す環境変数を指定します。ここでは、blogコンテナにrijiの<a href="https://github.com/ytnobody/Riji-Vanilla">プレーンなブログレポジトリ</a>を食わせました。</p>
+
+<h3>target_num_containers</h3>
+
+<p><code>target_num_containers</code>は、Stackのデプロイ時に起動する初期コンテナ数です。blogサービスでは、最初からコンテナを3つ起動する、ということですね。</p>
+
+<h3>yamlファイルとして保存</h3>
+
+<p>さて、概ね解説したわけですが、このような内容のものを、適宜yamlファイルとして保存します。</p>
+
+<h2>Stackをデプロイする</h2>
+
+<p>ではダッシュボードに戻って、先ほど作ったyamlファイルをアップロードしてみます。すると、"Stack file"の部分が以下の画像のように変化します。</p>
+
+<p><a href="http://i.gyazo.com/ec6c9ad2e760551915568a0a541d6869.png"><img src="http://i.gyazo.com/ec6c9ad2e760551915568a0a541d6869.png" alt="Stack wizard" /></a></p>
+
+<p>そうしたら、あとは"Create and deploy"ボタンをボチッと押すだけ。しばらく待っていると、以下のようにコンテナがワシャワシャとスタートします。</p>
+
+<p><a href="http://i.gyazo.com/849c85935c009693742a3cd80fe627a1.png"><img src="http://i.gyazo.com/849c85935c009693742a3cd80fe627a1.png" alt="containers" /></a></p>
+
+<p>左上のほうにある"Starting"表記が、緑色の"Running"になれば、デプロイ完了です。</p>
+
+<h2>haproxyのEndpoint URLにアクセスしてみる</h2>
+
+<p>それではデプロイできた所で、早速今出来上がったサービスにアクセスしてみましょう。</p>
+
+<p>前述のサービス一覧画面にある"haproxy"のリンクをクリックすると、以下のような画面になります。</p>
+
+<p><a href="http://i.gyazo.com/38c4269119cf6fb88e2e091687fb90c7.png"><img src="http://i.gyazo.com/38c4269119cf6fb88e2e091687fb90c7.png" alt="endpoint" /></a></p>
+
+<p>ここで、Service endpointsのところにあるURLのすぐ右側に、青く小さいリンクがありますので、クリックしてみましょう。</p>
+
+<p>以下のような画面になっていれば、無事にデプロイに成功したことになります。</p>
+
+<p><a href="http://i.gyazo.com/bf25c339fbe1c9192e91725367fc0201.png"><img src="http://i.gyazo.com/bf25c339fbe1c9192e91725367fc0201.png" alt="blog" /></a></p>
+
+<h2>まとめなど</h2>
+
+<p>比較的簡単な設定ファイルを作ることで、簡単に複数のサービスとその連携をデプロイできる"Stacks"を紹介しました。</p>
+
+<p>ちなみに、このブログもtutumのstackを使って稼働しています。</p>
+
+<p>ついでに個人的な意見なんですが、Dockerを使ってサービスを立ち上げるのであれば、今後、Docker as a Serviceはなくてはならない存在になっていくのではないか、と思っている次第です。</p>
+
+<p>徐々に便利に、徐々に堅牢になっていくtutum、DaaSの急先鋒として今後も目が離せないです。</p>
+
+<p>あとはLBaaSの動向も最近気になっておりますが、もっと情報を集めて実際に試してみてから、情報をシェアできればなあ、と思っています。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/tutum.html">tutum</a></li>
+      <li><a href="/tag/docker.html">docker</a></li>
+      <li><a href="/tag/DaaS.html">DaaS</a></li>
+      <li><a href="/tag/memo.html">memo</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-03-26 18:57</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-03-26 18:57</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

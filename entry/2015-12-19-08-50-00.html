@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Perl入学式を社内に持ってきた話 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2015-12-05-18-50-00.html">二千万レコードあるテーブルへのalterをサービスを止めずに流す</a>
+    <li class="next">next: <a href="/entry/2015-12-28-01-05-00.html">過去を振り替える時間</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Perl入学式を社内に持ってきた話</h1>
+
+<p>このエントリは<a href="http://qiita.com/advent-calendar/2015/perl-entrance">Perl入学式アドベントカレンダー</a>19日目のエントリです。</p>
+
+<p>18日目は<a href="https://twitter.com/umaaaaa_chan">@umaaaaa_chan</a>さんのエントリ<a href="http://umaaaaa-chan.hatenablog.com/entry/2015/12/18/002641">Perl入学式から広がったコミュニティ</a>でした。</p>
+
+<p>学生の方が<a href="http://www.perl-entrance.org/">Perl入学式</a>を通して<a href="http://kichijojipm.hatenablog.com/">Kichijoji.pm</a>へと行動範囲を広げ、来年にはPerlと関連したお仕事に就くということで、長らくPerlで食べてきた者としては感慨深いエントリでした。</p>
+
+<h2>Perl入学式を社内に持ってくる、とは？</h2>
+
+<p>わりとよく知られた話かもしれませんが、Perl入学式の公式サイトでは、<a href="http://www.perl-entrance.org/handout.html">往年のスライド</a>が<a href="https://creativecommons.org/licenses/by-nc-nd/2.1/jp/">クリエイティブ・コモンズ・ライセンス</a>に基づき無償で公開されております。</p>
+
+<p>基本的には営利目的以外であれば、出自を明らかにした上でそのまま利用することが可能、という状況です。</p>
+
+<p>社内より参加希望者を募り、必要に応じてサポーターが数名参加することで、スケジュール調整次第でいつでも開催可能、というわけです。</p>
+
+<p>ちょっと話がそれますが、僕は現在、エンジニア・プロデューサー・デザイナーなどといった、いわゆるシステム開発の「受注側」を担うメンバーを率いる統括マネージャーとでもいった立ち位置にいます。</p>
+
+<p>そんなわけで、社内で使うであろうシステム開発についての知見をできるだけメンバーに広く浸透させ、効率よく業務を遂行してもらう責任があります。</p>
+
+<p>社内研修もその一環であり、自分たちの利用している技術に関する実績ある研修手法が目の前にあって、しかも無償で利用可能となれば、利用しない手はないです。渡りに船というやつです。</p>
+
+<h2>実際開催してみた</h2>
+
+<p>そんな感じで11月の下旬に社内メンバー向けにやってみましたところ、いろいろと気がつく点がありました。</p>
+
+<p>各社の状況によって事情は異なると思いますが、ひとつの事例としてみていただけると良いかと思います。</p>
+
+<h3>予想以上に関心が高い人が多かった</h3>
+
+<p>告知をしてみたところ、エンジニアやプロデューサなど、ロールを超えて参加に前向きな方が多かったのが印象に残っています。</p>
+
+<p>やはり初学者向けということもあり、未経験の方としては「新たなスキルを習得したい」「プログラムがわかる視点でプロデューサー業務を見直したい」という気持ちがモチベーションになっているようでした。</p>
+
+<p>驚いたのが、熟練のエンジニアでも「今のPerlがどうなってるのか知っておきたい」「基礎からレクチャーを受ける機会がなかったので受けたい」「Perlは第4言語くらいなのでちゃんと習得したい」等のいう理由から、この初学者向けハンズオンに参加してくれたりして、これは新しい発見だと感じました。</p>
+
+<h3>社内研修で4時間とるのは難しい</h3>
+
+<p>実際のPerl入学式では（たとえば東京の場合は）開催時間が大体13:00～17:00となっており、4時間確保して懇切丁寧に解説したりするのですが、業務時間を縫って4時間をまるっと確保するのは難しいと感じました。</p>
+
+<p>ぼくらの場合、エンジニア暦7年以上の猛者が多いということもあったので、大幅に時間を短縮し2時間で第1回および第2回の70%くらいまでをこなしました。</p>
+
+<p>若手プロデューサの方など明らかにエンジニアリングの経験がない方もいて、最初本当に大丈夫かな？と不安視しましたが、参加者全員が各問題をスムーズに解いていくのを見て、「あ、この人エンジニアでもやっていけそうだな」とか「熟練者でも若干の表記のゆらぎがあるな」などと思ったりできるくらいには余裕がありました。</p>
+
+<h3>社内向けの補足解説が大事</h3>
+
+<p>基本的に入学式の資料はターゲットを広く取っていることもあって、よく言えば「どんな人にも一定以上の効果がある」となるのですが、一方で短い時間で把握してもらうには若干冗長になっているとも受け取れます（これは仕方ない事です）。</p>
+
+<p>ですので受け手にスムーズに汲み取ってもらえるよう、「いま説明した部分はうちのシステムのほげほげ機能で使われています」とか「管理画面の会員一覧を出すときにここでこうやって使います」のように、実際の利用事例やコードを挙げて説明することで、業務とリンクして理解してもらえるよう努めました。</p>
+
+<p>すると「あーなるほど、じゃあ一覧出してるところは全部こういう感じなんですね」みたいな反応があったりするので、理解してもらえてるかどうかの指標となり、結果的にスムーズな理解へとつながったんじゃないかな、と思っています。</p>
+
+<h2>まとめ</h2>
+
+<p>結果として、社内メンバーに対して相応の知見を持って帰ってもらうことができたんじゃないか、と思っています。</p>
+
+<p>僕自身それなりの回数をサポーターとしてやってきているので、内容やすすめ方など基本的な軸については理解している、というのも大きかったと言えるでしょう。</p>
+
+<p>しかし、それはPerl入学式というコミュニティから得られた知見ですし、仲間の力です。一緒に関わってこれたことを本当にありがたく思う次第です。</p>
+
+<p>特に<a href="https://twitter.com/__papix__">@<strong>papix</strong></a>さんには4年くらい（そろそろ5年になるのかな？）お世話になっておりますが、彼のおかげで僕もたくさんの知見を獲得することができています。ありがとう。これからもよろしく！</p>
+
+<h2>さぁーて、次回のエントリは～？</h2>
+
+<p>明日はついに20日目、<a href="https://twitter.com/nishiru3">にしるさん(@nishiru3)</a>の出番です！休日出勤お疲れ様！体調気をつけてエントリかいてくださいね！</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/b32.OBSXE3HFQWS6LLNG4W6I6.html">perl入学式</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-12-19 08:49</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-12-19 08:49</dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

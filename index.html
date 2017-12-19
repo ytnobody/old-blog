@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+    All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul>
+    <li><a href="/archives.html">Archives</a></li>
+  </ul>
+</nav>
+<article>
+  <h1><a href="/entry/2016-10-18-17-44-52.html">Tumblrにブログのお引越し？をします。</a></h1>
+  <p class="written_at">written: <time pubdate>2016-10-18 17:49</time></p>
+  
+
+<p>今見ているこのブログですが、<a href="http://ytnobody.bitbucket.org/">http://ytnobody.bitbucket.org/</a> へアドレスを変更し、今後更新をしない方針とします。</p>
+
+<p>そして、新しいブログは引き続き <a href="http://ytnobody.net/">http://ytnobody.net/</a> で閲覧できる様に更新していきます。見れない場合は<a href="http://ytnobody-tech.tumblr.com/">http://ytnobody-tech.tumblr.com/</a> で見れます。</p>
+
+<p>引き続きよろしくお願いします。</p>
+
+</article>
+<article>
+  <h1><a href="/entry/2016-08-17-00-47-42.html">エラーで帰ってきてしまったメールの解析</a></h1>
+  <p class="written_at">written: <time pubdate>2016-08-17 00:59</time></p>
+  
+
+<p>どーも、わいとんです。</p>
+
+<p>主題のような作業をするのに際し、<a href="http://libsisimai.org/ja/">Sisimai</a>が大変便利だったので、APIコンテナを作ってしまいました。</p>
+
+<ul>
+<li><a href="https://hub.docker.com/r/ytnobody/sisimai-api/">ytnobody/sisimai-api on docker hub</a></li>
+</ul>
+
+
+<h2>使い方</h2>
+
+<p>SYNOPSISに書いてあるままですが、まず <code>docker pull ytnobody/sisimai-api</code> をしたのちに</p>
+
+<pre><code>docker run --rm -it -v /path/to/mailbox:/opt/mail -p 5000:5000 ytnobody/sisimai-api
+</code></pre>
+
+<p>とすればだいたい起動できます。 <code>/path/to/mailbox</code> には、エラーメールが入ってるメールボックスを指定してあげましょう。</p>
+
+<p>コンテナが起動した状態で <code>http://your-docker-host:5000/</code> とかにリクエストをすると、エラーメールのサマリーをJSON形式で取得できます。内容については<a href="http://search.cpan.org/dist/Sisimai/lib/Sisimai/Data.pm#PROPERTIES">Sisimai::Dataのプロパティ</a>を参照してください。</p>
+
+<h2>まとめ</h2>
+
+<p>エラーメールの解析には <a href="http://libsisimai.org/ja/">Sisimai</a> が大変便利です。それをさらに雑に扱いたかったので、勢い余ってJSON-APIを作ってコンテナ化してしまいました。</p>
+
+<p>ちょっとした小間使いにちょうど良い使い勝手になっていると思いますので、どうぞよろしくお願いします。</p>
+
+</article>
+<article>
+  <h1><a href="/entry/2016-08-15-09-23-25.html">Microsoft Cognitive ServicesのFace APIをPerlから使ってみる</a></h1>
+  <p class="written_at">written: <time pubdate>2016-08-15 15:01</time></p>
+  
+
+<p>どーも、わいとんです。</p>
+
+<p>近頃、業務の延長線上の分野として、顔のパーソナライズ認識、及びそれらのリレーショナルな利用について興味が湧いております。</p>
+
+<h2>「顔画像のパーソナライズ認識とリレーショナルな利用」の例</h2>
+
+<p>例えばFacebookやvk.comなどのような実名SNSでは、概ね以下のような情報を登録するように促されることでしょう。</p>
+
+<ul>
+<li>姓名</li>
+<li>性別</li>
+<li>生年月日</li>
+<li>居住地</li>
+<li>興味のあること</li>
+<li>顔画像</li>
+</ul>
+
+
+<p>さて、これらの情報を一般的なリレーショナルデータベースのテーブル構造として捉えた場合、「姓名」「性別」「年齢」「居住地」「興味のあること」でのレコード検索が可能かと思います。</p>
+
+<p>ところがもし、「顔画像」の近似値でレコード検索できるとしたら・・・</p>
+
+<p>端的な例えですが、こんなことができるようになるわけですね。</p>
+
+<p><img src="/static/2016-08-15_10.06.21.jpg" alt="これは2011年のわいとんです・・・" /></p>
+
+<p>2011年の写真くらいしかさっくり入手できなかったのですが、頭の上に何か表示が出てますよね。その気になれば、年齢とか居住地とか出せそうではあるのですが、プライバシー保護の観点から、表示されて良い情報は非常に限定的かと思います。</p>
+
+<p>こんな感じのことを<a href="https://www.microsoft.com/cognitive-services/">Microsoft Cognitive Services</a>を使えば実現できそうだなぁ、と直感しておりまして、ひとまず一番慣れているperl5で利用できるようモジュールを書いてみました。</p>
+
+<p><a href="https://github.com/ytnobody/p5-Net-Microsoft-CognitiveServices-Face">ytnobody/p5-Net-Microsoft-CognitiveServices-Face</a></p>
+
+<p>ちなみにCognitive ServicesのFace APIは、試すだけなら<a href="https://www.microsoft.com/cognitive-services/en-us/pricing">3万トランザクション/月まで無料</a>ですので、割といい感じだと思います。</p>
+
+<p>※Microsoft Cognitive Servicesを利用するためには、あらかじめMicrosoft Azureを利用している必要があります。ここではAzureやCognitive Servicesの設定については細かく説明しませんが、Azure上でCognitive Services - Face APIをデプロイするとAccess Keyが払い出されるので、そのことだけは覚えておいてください。</p>
+
+<h2>Net::Microsoft::CognitiveServices::Faceを使ってみる</h2>
+
+<p>まぁ<a href="https://github.com/ytnobody/p5-Net-Microsoft-CognitiveServices-Face/blob/master/eg/identify.pl">eg/identify.pl</a>あたりを見てもらえると何となく使い方などがわかるとは思うんですが、一応解説。</p>
+
+<h3>まずFace APIのドキュメンテーションを把握しておく</h3>
+
+<p>Net::Microsoft::CognitiveServices::Face(以下CS::Face)のインターフェースは、ほぼ<a href="https://dev.projectoxford.ai/docs/services/563879b61984550e40cbbe8d/operations/563879b61984550f30395236">Face APIのドキュメンテーション</a>に合わせて作ってあります。したがって、Face APIのドキュメンテーションを読んでおかないと使い方がピンとこないです。</p>
+
+<h3>名前が長いので変数に食わしておく</h3>
+
+<p>ハイ、名前が長いのです・・・</p>
+
+<pre><code>my $api = 'Net::Microsoft::CofnitiveServices::Face';
+</code></pre>
+
+<h3>Access Keyを食わせる</h3>
+
+<p>まずは何をするにもAccess Keyを食わせないことにはアクセスさせてくれませんので、これを食わせます。</p>
+
+<pre><code>$api-&gt;access_key('YOUR_ACCESS_KEY');
+</code></pre>
+
+<p><code>YOUR_ACCESS_KEY</code> は適宜ご自身のAccess Keyに置き換えてください。</p>
+
+<h3>Person Groupを作る</h3>
+
+<p>人物情報を格納するために、Face APIにてPerson Groupを作っておく必要がありますので、これを作ります。 <code>$person_group_id</code>は半角英数及びハイフン・アンダーバーが利用可能です。 <code>name</code>は文字列で好きな値を設定できます。</p>
+
+<pre><code>my $person_group_id = 'my_person_group';
+$api-&gt;PersonGroup-&gt;create($person_group_id, name =&gt; 'My Person Group');
+</code></pre>
+
+<h3>Person GroupにPersonを登録していく(人数分やる)</h3>
+
+<p>顔画像の登録をする前に、人物情報となるPersonをPerson Groupに登録していきます。<code>name</code>及び<code>userData</code>に任意の文字列を設定できます。</p>
+
+<pre><code>my $person = $api-&gt;Person-&gt;create($person_group_id, 
+    name     =&gt; 'ytnobody', 
+    userData =&gt; 'Favorite:Programming,Motorcycle,Cooking,Anime',
+);
+</code></pre>
+
+<h3>人物情報に顔画像を紐付ける(人数分やる)</h3>
+
+<p>先ほど登録した人物情報に顔画像を紐付けます。<code>$image</code>には、外部から参照可能なurlを食わせる必要があります。</p>
+
+<pre><code>my $person_id = $person-&gt;{personId};
+my $image     = 'https://lh5.googleusercontent.com/-8qD5BkKOV3g/TtpRC-8J_wI/AAAAAAAAAlY/yYk2AFtM51U/s1024/20111203-P1000424.jpg';
+$api-&gt;Person-&gt;add_face($person_group_id, $person_id, $image);
+</code></pre>
+
+<h3>Person Groupに顔画像を学習させる</h3>
+
+<p>顔画像の登録が済んだら、Person Groupに顔画像の学習をさせます。学習には顔画像の数によってかかる時間が異なりますが、学習の済んでいないPerson Groupでは人物特定ができませんので、顔画像の登録後には必ず実施する必要があります。</p>
+
+<pre><code>$api-&gt;PersonGroup-&gt;train($person_group_id);
+</code></pre>
+
+<p>なお、以下のようにすることで学習状態の確認が可能です。</p>
+
+<pre><code>my $result = $api-&gt;PersonGroup-&gt;training_status($person_group_id);
+say $result-&gt;{status}; ## "succeeded" となっていれば学習完了。
+</code></pre>
+
+<h3>異なる顔画像からの人物特定</h3>
+
+<p>全く別の画像から顔画像を検出します。</p>
+
+<pre><code>my $detected = $api-&gt;Face-&gt;detect('https://mynavi-agent.jp/it/geekroid/ent51_img14.jpg');
+my $face_id  = $detected-&gt;[0]{faceId};
+</code></pre>
+
+<p>検出できた顔画像から、該当する人物のpersonIdを取得します。<code>faceIds</code>には本来複数のface_idを食わせることが可能ですが、今回は1件のみ食わせました。</p>
+
+<p>なお、<code>maxNumOfCandidatesReturned</code>にはマッチした人物の件数を指定できますが、1を指定することで一人に絞り込むことができます。</p>
+
+<p><code>confidenceThreshold</code>には一致率を0〜1の範囲で指定ができますが、この値に及ばない一致率の結果を足切りすることができます。</p>
+
+<pre><code>my $ident = $api-&gt;Face-&gt;identify(
+    faceIds                    =&gt; [ $face_id ],
+    personGroupId              =&gt; $person_group_id,
+    maxNumOfCandidatesReturned =&gt; 1,
+    confidenceThreshold        =&gt; 0.6,
+);
+my $candidated_person_id = $ident-&gt;[0]{candidates}[0]{personId};
+</code></pre>
+
+<h3>特定できた人物の情報を取得</h3>
+
+<p>ここまでである程度「この人間ですよね？」というレベルのマッチングがかかっているので、後はpersonIdを元にPersonを取得できればOKという感じになります。</p>
+
+<pre><code>$person = $api-&gt;Person-&gt;get($person_group_id, $candidated_person_id);
+printf "name =&gt; %s \n%s\n", $person-&gt;{name}, $person-&gt;{userData};
+</code></pre>
+
+<h2>まとめ</h2>
+
+<p>PerlからMicrosoft Cognitive ServicesのFace APIを利用するためのモジュール<code>Net::Microsoft::CognitiveServices::Face</code>を作ってみたので紹介しました。</p>
+
+<p>Cognitive Servicesには他にも画像・動画などの認識にまつわるAPIがあるので、今までにない仕組みを作るのに一役買ってくれるんじゃないでしょうか。</p>
+
+</article>
+<article>
+  <h1><a href="/entry/2016-08-10-10-04-23.html">救急車に運ばれて熱中症と診断されたのでレポート</a></h1>
+  <p class="written_at">written: <time pubdate>2016-08-10 10:43</time></p>
+  
+
+<p>どーも、わいとんです。</p>
+
+<p>タイトルの通り、昨晩救急車のお世話になりました。まさか自分で自分のために救急車を呼ぶことになろうとは、僕自身非常にショックを受けております。</p>
+
+<h2>何が起こったのか</h2>
+
+<p>ざっくり言うと</p>
+
+<p>「早めに帰宅できたので晩酌していたら、突然目が眩んで右首筋が痺れ、右半身全体にかけて、左半身も一部痺れてヘナヘナと倒れこんだ」</p>
+
+<p>というようなことが起こりました。</p>
+
+<p>あまりに突然でしたし、父親が過去にくも膜下出血で倒れているので、最初は脳梗塞を疑って念のため救急車を呼びました。</p>
+
+<h2>東京・羽田では気温38度を記録。夜も外気は32度。</h2>
+
+<p>そもそも昨日の東京の気温をみてみると・・・</p>
+
+<p><img src="http://az416740.vo.msecnd.net/static-images/forecaster/diary/image/50021/1/20160809114406/large.jpg" alt="羽田で38度" /></p>
+
+<p>羽田で38度！自宅のある大井町駅付近は羽田からほど近いため、この気温と大差なかったんじゃないでしょうか。</p>
+
+<p>そして夜８時を過ぎても32度をキープ。正直、道産子には厳しい・・・＞＜</p>
+
+<h2>疲労・水分不足・灼熱・アルコホール</h2>
+
+<p>実は前日の夜中、同僚が深夜メンテ作業を行っており、気になって断続的に睡眠とSlackを往復しておったのですが、そのお陰で疲労が抜けなかったという下地がありました。</p>
+
+<p>また、思い返してみると先日は水分の摂取量がいつもよりも少なかったような気がします。（とは言っても普段から水分摂取量を気にしているわけではないので、気のせいかもしれないですけど）</p>
+
+<p>そして前述の異常な高気温。多分沖縄より暑かったんじゃないですかね・・・</p>
+
+<p>そこにトドメのビール。これが良くなかったんじゃないかなと思います。</p>
+
+<p>実は昨日、ビールを飲んでも「んまあああああアァァァイッッッ！！！！！」とはならなくて、飲みかけのプレモルを途中で嫁さんにあげちゃったくらいには美味くなかったんですが、その時点で体がビールを拒絶していたのかもしれませんね。</p>
+
+<h2>救急搬送先の脳外科医のアドバイス</h2>
+
+<p>搬送先では脳に異常がないかCTスキャンで調べてもらったのですが、特に異常なしとのことでした。</p>
+
+<p>その後問診・眼窩診察しましたが、これも異常なし。</p>
+
+<p>脳外科医曰く「熱中症からの筋痙攣と意識障害じゃないか」という診断。「水分をしっかりとって、エアコンの設定温度は低くしてください」というアドバイスをいただきました。</p>
+
+<h2>まとめ</h2>
+
+<ul>
+<li>帰宅したら「ビールで一杯」の前に水分補給を！</li>
+<li>エアコンをケチるべからず（別にケチったつもりはないが・・・）</li>
+<li>ビールが不味いときには水を飲もう</li>
+<li>よく寝ましょう</li>
+<li>痺れ・意識障害がある時は遠慮なく119番</li>
+<li>とにかく水分を補給しろ！話はそれからだ！</li>
+</ul>
+
+
+</article>
+<article>
+  <h1><a href="/entry/2016-07-04-10-33-02.html">YAPC::Asia Hachioji 2016 mid in Shinagawa で語ってきた</a></h1>
+  <p class="written_at">written: <time pubdate>2016-07-04 11:17</time></p>
+  
+
+<p>どーも。わいとん・イン・ザ・クローズドオオイマチです。</p>
+
+<p>7/2(土)〜7/3(日) に日本マイクロソフト社で開催された<a href="http://yapcasia8oji-2016mid.hachiojipm.org/">YAPC::Asia Hachioji 2016 mid in Shinagawa</a>(以下YA8C)で、プレイングマネージャとしての知見を語ってきました。このような機会を設けていただいたuzullaさん、makamakaさん、そして会場にまつわる準備をしてくれたmyfinderさん、スタッフの皆さん、ありがとうございました。</p>
+
+<p><figure class="swipe"><iframe src="https://www.swipe.to/embed/8276q" allowfullscreen></iframe></figure><style>figure.swipe{display:block;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;}figure.swipe iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></p>
+
+<h2>感想・所感など</h2>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="ja" dir="ltr">ヤパチー最高だったしありがたい</p>&mdash; 寝床おじさん (@ytnobody) <a href="https://twitter.com/ytnobody/status/749620722616508416">July 3, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="ja" dir="ltr">圧倒的であった</p>&mdash; 寝床おじさん (@ytnobody) <a href="https://twitter.com/ytnobody/status/749621242227859456">July 3, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="ja" dir="ltr">たなかさんのD部屋でのトーク、アレは本当にMS系テクノロジーとウェッブ系おじさんが邂逅していた瞬間だと思う。</p>&mdash; 寝床おじさん (@ytnobody) <a href="https://twitter.com/ytnobody/status/749782015944175616">July 4, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+<p>基本的には最高であったわけですが、私はほとんど「飛び入りトークセッションコーナー」（通称Dルーム）というところに常駐してまして、明らかに相当ディープなセッションが多かったという気がしております。</p>
+
+<p>唐突に発表スライドを書きながらBeta版と称して発表する人、前打ち合わせなしにPHP漫談をやってのける２人組（というか片方は主催）、RHEL + .NET Core + VSCode で即席WebAppを仕立て上げるツワモノなどなど、大変にバラエティに富んだ内容でした。</p>
+
+<p>打ち上げでは、uzulla氏からYA8Cの象徴（？）という見えないタスキをpapix氏に託す場面もありましたが、いずれきっと次があるだろうし、彼らがヘルプを求めてきたときにはできる限りの手助けはするつもりです。</p>
+
+<p>待ってるぞ、次回！</p>
+
+<h2>その他：飛び入りセッションで発表したスライド</h2>
+
+<p><figure class="swipe"><iframe src="https://www.swipe.to/embed/0399x" allowfullscreen></iframe></figure><style>figure.swipe{display:block;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;}figure.swipe iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></p>
+
+</article>
+<article>
+  <h1><a href="/entry/2016-06-13-11-30-00.html">PM Beginners #2 で喋ってきた</a></h1>
+  <p class="written_at">written: <time pubdate>2016-06-13 12:17</time></p>
+  
+
+<p><img src="https://dl.dropboxusercontent.com/u/9480685/2016-06-10-20-34-36.jpg" class="photo"></p>
+
+<p>6/10(金)、渋谷は道玄坂上にて、<a href="https://twitter.com/i47_rozary">@i47_rozary</a>氏主催による<a href="http://pmbegginers.connpass.com/event/31721/">PM Beginners #2</a>に参加してきました。</p>
+
+<h2>「これは教科書どおりのウォーターフォールですね！」</h2>
+
+<p><a href="https://swipe.to/9999s">Scrum was fired/スクラムはやられた</a> というスライドで発表しました。</p>
+
+<p>上流工程のボトルネックを少なくするため、各上流工程の合間にかならずレビューを入れる方法を <code>ReDD - レビュー駆動開発</code> という名で再定義してみたのですが、言ってしまえば「正しいウォーターフォール開発」です。
+しかし、ウォーターフォールっていうだけで若者から加齢臭扱いされて逃げられてしまいますし、そもそもウォーターフォールをちゃんとわかっていない人も多いので（私も含めて）、一旦要素の再定義を行って、既存のフローに+αしてみたというお話でした。</p>
+
+<p>上流工程全てにレビューを入れるという方法はチーム内ですでに進めているのですが、ReDDという名はまだチームでもぜんぜん浸透させてない状況なので、さっさと定義を広めるところからやらないといけなくて、ある程度期間を経てから知見を改めて共有したいと思っています。</p>
+
+<h2>振り返りは案外ロングスパン</h2>
+
+<p>ぼくのチームではスクラムを回していた頃、スプリントは5日間で、スプリント終了時に振り返りをしていました。他の参加者の話を聞いてみると、結構半年とかのロングスパンで振り返りをしている人が多かったのが印象的でした。</p>
+
+<h2>プロジェクトマネジメントはもっとフォーカスを当てられて良いはずだ</h2>
+
+<p>エンジニアは基本的に開発技術や手法についていろいろと知見を書き入れることが多いかと思います。
+しかし、どんな先鋭的な技術やどんな高速な処理実装も、プロジェクトマネジメントがダメダメだと、リリースされることのないコードの不良在庫となってしまいます。</p>
+
+<p>コードの不良在庫を少なく、どんどんリリースできる体制を作るためにも、プロジェクトマネジメントの知見は有効だと思います。</p>
+
+</article>
+<article>
+  <h1><a href="/entry/2016-05-29-09-06-46.html">BBQ::Builderscon に行ってきた</a></h1>
+  <p class="written_at">written: <time pubdate>2016-05-29 09:55</time></p>
+  
+
+<p>先日、<a href="https://www.facebook.com/events/803942576374123/">BBQ::Builderscon</a>という集まりがあったので行ってきました。</p>
+
+<p>やるぞーと言い出したのは<a href="https://twitter.com/lestrrat">lestrrat</a>さん。</p>
+
+<p><img class="photo" src="/static/bcon01.jpg"></p>
+
+<p>某アメコミヒーローっぽくキメるlestrratさん。写真からもやる気が伝わってくると思います。曰く、「ちゃんとブログ書いてね！」とのことでした。</p>
+
+<p>会場の準備を整えてくださった<a href="https://twitter.com/uzulla">uzulla</a>さん、企画しておいしいお肉をご馳走してくださったlestrratさん、有難うございました！</p>
+
+<p><img class="photo" src="/static/bcon02.jpg"></p>
+
+<p>なお、本エントリの写真はすべてuzullaさんの手によるものです。ありがたく拝借させていただきます。</p>
+
+<h2>これはBBQというより・・・シュラスコだ！！！</h2>
+
+<blockquote class="twitter-tweet" data-partner="tweetdeck"><p lang="ja" dir="ltr">みんな、「カンファレンス」と「美味しい肉」の両方とも好きだろ？ ちょうどいいイベントがあるんですよ… 基本的に僕が肉を焼いて皆様に食べていただきたいだけのイベントです。参加お待ちしてます <a href="https://t.co/4miCUobQPc">https://t.co/4miCUobQPc</a> <a href="https://twitter.com/hashtag/builderscon?src=hash">#builderscon</a></p>&mdash; Daisuke Maki (@lestrrat) <a href="https://twitter.com/lestrrat/status/731994916163751936">May 15, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+<p>この言葉通り、まさにひたすらにlestrratさんが肉を焼きまくって切りまくって振舞いまくるというものでした。いわばシュラスコ状態。</p>
+
+<p><img class="photo" src="/static/bcon12.jpg"></p>
+
+<p>こんな感じでlestrratさんが肉を焼き・・・</p>
+
+<p><img class="photo" src="/static/bcon13.jpg"></p>
+
+<p>こんな感じで提供されました。どうみてもシュラスコです。</p>
+
+<p><img class="photo" src="/static/bcon11.jpg"></p>
+
+<p>lestrratさんのchildプロセスくんを管理するuzulla氏。2nd childくん、お肉の食べすぎでお腹がパンパンになってました。</p>
+
+<h2>そもそもBuildersconってなんだ</h2>
+
+<p><a href="http://builderscon.io/">Builderscon の公式web</a>に書かれている内容を超訳すると「技術ヲタクのためのお祭り」となっています。</p>
+
+<p>今年の12月に開催予定であり、lestrratさんが主催となって、<a href="http://blog.builderscon.io/builderscon/jp/2016/02/14/where-builderscon-is-going.html">目下準備中</a>という状況です。</p>
+
+<p><a href="http://blog.builderscon.io/builderscon/2015/08/18/mission-statement.html">ここ</a>にも書かれているように、特定の技術や業界に焦点を当てるというよりは「モノづくり」とそれに関連する技術全般をカバーするカンファレンスを目指しているようです。</p>
+
+<p>従って、IT業界のエンジニアにとどまらず、もっとたくさんの業界から発表者が集まることを期待してよさそうです。</p>
+
+<p>各業界の皆様におかれましては、ぜひ日ごろの「モノづくり」に対する情熱と技を披露していただけると良いのではないでしょうか（といってもトーク募集はまだのようですが）。</p>
+
+<h2>期待できるぞBuildersconは！</h2>
+
+<p>集まったメンバーには<a href="https://twitter.com/mackee_w">まこぴー</a>とか<a href="https://twitter.com/moznion">もずにおん</a>なんかもいたんですが、まこぴーが自力で3Dプリンターを組み立てたらしく、自作プリンターで作った20面ダイスやら3Dプリンターの冷却パーツやらを持ってきていて、極まってるなぁなどと感じたりしました。制御方法も結構詳しく話してくれてて、「既にBuildersconは始まっているのだ！」感が出ておりましたね。もずにおんあたりには録画サーバの話とか調理器具の話をしてもらいたいかも。</p>
+
+<p>あとだれかオフグリッドな太陽光発電関連の技術トークしてくれないかなぁ・・・</p>
+
+<p><img class="photo" src="/static/bcon03.jpg"></p>
+
+<p>BBQ当日に集まった面々。この中からもきっと興味深いトークを発表してくれる人が出てくるはず！</p>
+
+</article>
+<article>
+  <h1><a href="/entry/2016-02-13-21-55-23.html">究極に雑なデプロイができるContainer as a Service &quot;arukas.io&quot;</a></h1>
+  <p class="written_at">written: <time pubdate>2016-02-13 22:49</time></p>
+  
+
+<h2>Docker Cloudが出た！</h2>
+
+<p>先日tutumがめでたく<a href="http://cloud.docker.com/">Docker Cloud 1.0</a>としてリリースされました。基本的にDocker Cloudは有償サービスであり、コンテナ管理の手間をお金で解決するための仕組みという位置づけとなっています。</p>
+
+<p>気になる料金プランですが、1ノードあたり1時間につき0.02ドルとなっており、Docker Cloudに1ヶ月間1ノードを管理させた場合、執筆時の相場でおよそ1500円ほどかかることになります。エンタープライズ用途に耐えうるものであることを考えると、ディスカウントっぷりがすごいなあ、という感想です。</p>
+
+<h2>TutumからDocker Cloudへの移行を検討しよう</h2>
+
+<p>ところで、今から新しくtutumにアカウントを登録しようとしてもDocker Cloudへとリダイレクトされてしまい、旧tutumへのアカウント登録ができない状態となっています。</p>
+
+<p>そして既存のtutumアカウントをお持ちの方に、大事なことを２つお伝えしておきます。</p>
+
+<ol>
+<li><p><a href="https://tutum-community.slack.com/archives/general/p1455369867002541">Tutumは2016年5月31日で終了らしいです。</a></p></li>
+<li><p>TutumユーザにはDocker CloudのEarly Supporter Codeが付与されていて、Docker Cloudで2ノードまで無料で管理させておくことが可能です。</p></li>
+</ol>
+
+
+<p>それでは「今から無料でコンテナを試してみたい！」という向きはどうすればよいか。まあ素直にDocker Cloudのfreeプランを考慮するのがよろしいかと思いますが、もうひとつの選択として<a href="http://arukas.io">Arukas</a>を使ってみる方法があります。</p>
+
+<h2>Arukasとは？</h2>
+
+<p><a href="http://arukas.io">Arukas(アルカス)</a>とは国産のコンテナプラットフォームであり、現在ベータテスト期間中とのことで、以下の機能がすべて無償で利用可能です。</p>
+
+<ul>
+<li>サービスの追加</li>
+<li>サービスのコンテナ(インスタンス)数調整</li>
+<li>コンテナへのRAM割り当て(1コンテナに対して256MB/512MBが選択できる)</li>
+<li>ノードの透過的な提供</li>
+<li>portのexpose</li>
+<li>ENVおよびCMDの指定</li>
+</ul>
+
+
+<h2>何はともあれ使ってみよう</h2>
+
+<p>とりあえずアカウントを登録し終えると、ダッシュボードが表示されます。以下のような画面ですね。</p>
+
+<p><a href="https://gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07"><img src="https://i.gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07.png" alt="https://gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07" /></a></p>
+
+<p>ここで「新しいアプリケーションを作成」をクリックすると、画面が切り替わって以下のようなフォームが登場します。</p>
+
+<p><a href="https://gyazo.com/86940a2eaf70a0600db066d79e7c3c96"><img src="https://i.gyazo.com/86940a2eaf70a0600db066d79e7c3c96.png" alt="https://gyazo.com/86940a2eaf70a0600db066d79e7c3c96" /></a></p>
+
+<p>今回は例として、先日作った<a href="http://blog.ytnobody.net/entry/2016-01-22-17-00-00.html">「ギロッポンでシースーなAPIのコンテナ」</a>を雑にデプロイしてみましょう。</p>
+
+<p>まず<code>Name</code>のところには自分で識別しやすくするためのサービス名を半角英数で入力していきます。今回は<code>giroppon</code>とでもしておきましょう。</p>
+
+<p>次に<code>Image</code>ですが、今回デプロイするDocker Imageは<a href="https://hub.docker.com/r/ytnobody/shukugawa-atom/">こちら</a>ですので、<code>ytnobody/shukugawa-atom</code>となります。</p>
+
+<p>そして<code>Port</code>に<code>7654</code>と入力します。これは<code>ytnobody/shukugawa-atom</code>がtcp/7654を使うからですね。</p>
+
+<p>これで以下のような状態になったかと思います。</p>
+
+<p><a href="https://gyazo.com/bb54eeddf6bbff9319853b4d327066da"><img src="https://i.gyazo.com/bb54eeddf6bbff9319853b4d327066da.png" alt="https://gyazo.com/bb54eeddf6bbff9319853b4d327066da" /></a></p>
+
+<p>ここまでできたら、あとは「アプリケーションを作成」ボタンをクリックするだけです。やたらシンプルですね！</p>
+
+<h2>アプリケーションが起動したら</h2>
+
+<p>実際にアプリケーションが起動すると、ダッシュボードのアプリケーション一覧には以下のように<code>giroppon</code>という名前でアプリケーションが追加されます。</p>
+
+<p><a href="https://gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6"><img src="https://i.gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6.png" alt="https://gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6" /></a></p>
+
+<p>では、アプリケーションの詳細画面を見てみましょう。</p>
+
+<p><a href="https://gyazo.com/31208a872ab78e5e2225fd97a14aa00d"><img src="https://i.gyazo.com/31208a872ab78e5e2225fd97a14aa00d.png" alt="https://gyazo.com/31208a872ab78e5e2225fd97a14aa00d" /></a></p>
+
+<p>アプリケーション新規作成のフォームとほぼ同じような構成になっている画面ですが、PortのところにコンテナへのエンドポイントURLが表示されているので、クリックしてみましょう。</p>
+
+<p>すると、ytnobody/shukugawa-atomが提供するAPIがレスポンスを返してきますね。ではgetパラメータとして<code>text=六本木で寿司</code>を渡してみます。</p>
+
+<p><a href="https://gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d"><img src="https://i.gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d.png" alt="https://gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d" /></a></p>
+
+<p>このようにコンテナの動作を確認することができました。簡単ですね。</p>
+
+<h2>インスタンスを増やしてみる</h2>
+
+<p>今度はダッシュボードからインスタンスをひとつ増やしてみましょう。<code>giroppon</code>のアプリ詳細へ行き、以下のように<code>Instance</code>を2にして「保存」ボタンを押すだけです。</p>
+
+<p><a href="https://gyazo.com/a8250af9f87b151f191d0e715b576a8b"><img src="https://i.gyazo.com/a8250af9f87b151f191d0e715b576a8b.png" alt="https://gyazo.com/a8250af9f87b151f191d0e715b576a8b" /></a></p>
+
+<p>「保存」を押すとインスタンスが増えていることをアプリ詳細画面で確認できます。</p>
+
+<p><a href="https://gyazo.com/b496ab4a44593493169e2509c8f32567"><img src="https://i.gyazo.com/b496ab4a44593493169e2509c8f32567.png" alt="https://gyazo.com/b496ab4a44593493169e2509c8f32567" /></a></p>
+
+<p>インスタンスごとに別々のエンドポイントURLが発行されていることが分りますね。非常に楽なのがわかります。</p>
+
+<h2>Arukasの利点</h2>
+
+<p>一旦利点をまとめてみます。</p>
+
+<h3>ダッシュボードがシンプルで使いやすい</h3>
+
+<p>Tutumでも同じことを書きましたが、ダッシュボードのUIがシンプルにまとめられており、非常に使いやすいです。これはサービスが成功する上で必須の項目ですので、大変すばらしいことだと思います。</p>
+
+<h3>ノードについて気を回す必要がない</h3>
+
+<p>驚くべきことに、ArukasはDockerノードについて一切を考慮する必要がありません。
+いきなりDocker Imageを指定すればすぐに利用可能になりますし、「サーバレスアーキテクチャ」の一翼を担う存在と言えるかもしれません。</p>
+
+<h3>動作が速い</h3>
+
+<p>ダッシュボードを触ってみると、その動作の速度に驚かされるかと思います。
+僕の場合、実際にサービスをデプロイしてアクセス可能になるまでの時間が1分かからない程度でした。
+これは驚異に値する速度です。</p>
+
+<h2>Arukasの課題</h2>
+
+<p>これだけ簡単便利な国産コンテナプラットフォームなのですが、まだまだベータ期間ということもあって、課題がちらほらと見受けられます。</p>
+
+<h3>サービスエンドポイントURLが発行されない</h3>
+
+<p>インスタンスを増やしたときにコンテナごとにエンドポイントURLが発行されましたが、残念なことにサービスエンドポイントURLは発行されませんでした。
+このため、せっかく負荷対策でインスタンスを増やしても、自分でいちいち別にロードバランサーを用意し設定する必要が出てきてしまいます。</p>
+
+<h3>プライベートレジストリに対応していない</h3>
+
+<p>現状では<a href="https://hub.docker.com/">Docker Hub</a>で公開されているDocker Imageしか利用できません。
+従って、なんらかのクローズドなプロジェクトで利用するのは非常に困難となります。</p>
+
+<h3>足回りがロックインされてしまう</h3>
+
+<p>ノードについて気を回す必要がない、という利点の裏返しとなりますが、自分でIaaSベンダーやサーバの選定ができません。
+Docker Cloudの場合は各種IaaSやオンプレミスへの対応ができているので、この辺りはユースケース次第かと思います。</p>
+
+<p>もしサーバレスアーキテクチャに寄せるのであれば、Arukasのほうが向いているかもしれないですね。</p>
+
+<h3>CLIやAPIが存在しない</h3>
+
+<p>CLIやAPIが存在しないということは、自動化することが非常に困難であるということでもあります。</p>
+
+<p>APIだけでも出てくるとだいぶ利便性が高くなりそうですね。</p>
+
+<h3>ドキュメンテーションが貧弱</h3>
+
+<p>ダッシュボードについての記述があるのみです。
+まだまだ機能が少ないので現時点では問題にならないのですが、上述したような機能が追加されたときにドキュメンテーションもあわせて強化されることを期待したいところです。</p>
+
+<h2>まとめ</h2>
+
+<p>国産コンテナプラットフォームの<a href="http://arukas.io/">Arukas</a>を紹介しました。
+まだまだベータ期間ですので、機能面での見劣りが若干ありますが、サーバレスで使えて動作が大変高速、しかも簡単ですので、今後の動きに期待できそうです。</p>
+
+</article>
+<article>
+  <h1><a href="/entry/2016-01-22-17-00-00.html">「ギロッポンでシースー」なAPIをコンテナにしてみた</a></h1>
+  <p class="written_at">written: <time pubdate>2016-01-22 17:00</time></p>
+  
+
+<p>遅くなりましたが新年おめでとうございます。わいとんです。</p>
+
+<p>さて、書き初めってほどのものでもないんですが、タイトルのようなものをつくってみました。</p>
+
+<p><a href="http://shukugawa-atom.ytnobody.svc.tutum.io:7654/?text=%E6%81%B5%E6%AF%94%E5%AF%BF%E3%81%A7%E3%82%AB%E3%83%95%E3%82%A7">「恵比寿でカフェ」の例</a></p>
+
+<p>これは過去にlestrratさんが発表したAcme::ShukugawaAtomというCPANモジュールをAPI化し、dockerコンテナに放り込んだだけのものです。</p>
+
+<p><a href="https://hub.docker.com/r/ytnobody/shukugawa-atom/">ytnobody/shukugawa-atom on docker hub</a></p>
+
+<p>以上、非常に雑なネタでした。</p>
+
+</article>
+<article>
+  <h1><a href="/entry/2015-12-28-01-05-00.html">過去を振り替える時間</a></h1>
+  <p class="written_at">written: <time pubdate>2015-12-28 01:08</time></p>
+  
+
+<p>いわゆる個人的な今年の振り返りなどです。長いので斜め読みで結構かとおもいます。</p>
+
+<h2>大手IT企業に居たことで得たものなど</h2>
+
+<p>今年の初頭はまだ、前職の大手IT企業でサーバサイドのコード実装を行うプログラマをしていたわけですが、30ちょうどで入社してから4年目の冬、ふと数年先を想像して、自分はこのままで良いのだろうか？という疑問を持つようになりました。</p>
+
+<p>回りの仲間たちは本当にすごい方々ばかりで、技術力や知識量・センスなど、明らかに自分では真似のできないレベルのなにかを皆さんが持っていました。そういった方々の織り成すコードを見て、こういうやり方があるのか、と関心する機会に恵まれたことを、改めてありがたいことだったと感じております。現在僕は非常に生産効率の良い実装ノウハウを多数身につけることができ、実務レベルで活用することができております。</p>
+
+<h2>転機について</h2>
+
+<p>過去にも書きましたが、今年4月に上述の大手企業を退職し、乃木坂のIT企業に入社しました。お世辞にも大手企業とは言えない、小さい会社です。しかし、扱っているシステムは決して小さくないものですし、捌いているトラフィックも4から5Gbpsほどと、かなりの規模と言えるものです。</p>
+
+<p>僕は、大企業の「大企業っぽさ」が苦手でして、そこに身を置くことによって自分が弱ってしまった感覚があったのを覚えています。一時期、そんな自分を指して「牙を失った」とか「狩りをする爪がない」という表現でその軟弱さを自嘲していたことがありました。</p>
+
+<p>ある時、なんでそういう風に感じてしまうのだろうか、と温泉に浸かりながら考えていたとき、とある仮説をたてて考えてみたことがあります。</p>
+
+<p>「人間は、環境が求める以上の存在になることはできない。」</p>
+
+<p>そうすると、実は環境が僕の苦手なところを要求していただけであり、たまたま弱かった面が露呈しただけだった、ということではないのか？</p>
+
+<p>苦手な部分について頑張って克服することもできるだろう。でも、それはほどほどにしておかないと、人生はそんなに長くない。もっと自分の武器を売り込める環境を模索しなくては。</p>
+
+<h2>自分の武器を明らかにするために、過去をふりかえってみる</h2>
+
+<p>当時僕自信の過去を振り返った時に、大まかに以下のような武器を持っている、と認識していました（今思えばこれはやや盛りすぎな気がしてる）。</p>
+
+<ul>
+<li>webシステムの構築に関わるほぼ一切の技術 (サーバ・インフラ・JavaScript・セキュリティ・大規模メールシステムなど)</li>
+<li>microservices的な開発に関わってきた経験</li>
+<li>受注開発営業の経験</li>
+<li>webデザインの経験</li>
+<li>ソシャゲーのレベルデザイン経験</li>
+</ul>
+
+
+<p>当時はこれらの武器のうちの一部しか活用されてないな、という感覚があったのを覚えています。</p>
+
+<h2>自分が経験したことをやる道と、未経験のことをやる道と。</h2>
+
+<p>次のキャリアを選ぶときに、今までやってきたことをそのまま選んだのであれば、おそらくもう一度同じ結果が待っていることだったでしょう。一般的に大きい企業ほど、プログラマであればその人をプログラマという枠でしか扱わないはずです。能力の多面性を生かすことを考えたりはしないでしょう。</p>
+
+<p>であれば、最初から多面的な能力を要求されるポジションに就けば良い。例えそれが自分にとって未経験のポジションであっても、能力的には今までの経験を生かすことができるだろうし、それが期待されるはず、と考え、小さいIT企業に転職し、グロースハッカーというポジションをでっち上げることにしたのです。</p>
+
+<p>この辺の発想の転換には、僕が主催をやっているMachida.pmという集まり？の影響がものすごく大きいです。</p>
+
+<h2>グロースハッカー（笑）</h2>
+
+<p>当初こそサーバサイドエンジニアという肩書きでしたが、最終面接の時点から徹頭徹尾グロースハッカーであることを主張し続けましたし、考え方も行動もグロースハックの観点を軸に、ただし日本の世の中で言われているグロースハックとは違う、もっとエンジニア的なグロースハックを実現することに力を使うことにしていました。</p>
+
+<p>まず、社内の雰囲気を変えるところからやっていくことにしました。悪い噂に怯える仲間には「じゃあ僕が真相聞いてきます」と言って当事者に聞きにいったりしました。煮えきらない仲間には飲んだ勢いで「全力で協力しあっていこうぜ、背中は任せたぞ、その代わりお前の背中は任せてもらうぞ」みたいな感じで絡んだりもしました。とにかくメインの業務に集中してもらいたいという一心で、その他の消耗しそうな要素を徹底的になくしていくよう努めたつもりです。</p>
+
+<p>そして、マーケティング部門との連携を進めるべく、分析基盤の強化やモニタリング基盤の整備を行いました。また、インフラ部門の新設、エンジニア採用における人事部門との連携、エンドユーザからのフィードバックを直に受けるサポセンとの連携など、事業生産効率の向上を狙い、各部門とテクノロジー部門との繋がりを築くことができたと思っております。</p>
+
+<h2>気づけばマネージャに</h2>
+
+<p>あくまで僕が目指してきたのは「生産効率の向上」この一点に尽きます。肩書きなんてものは後でついてきたものなのでこの際なんでも良くて、仲間を信頼できる文化を社内に根付かせ、個人個人のマイナス面をチームで補い、生産能力を遺憾無く発揮できるチームを作っていきたい、というのが今の目標となっています。</p>
+
+<h2>こういうエントリを書くことは再確認作業でもある</h2>
+
+<p>この手のポエムを書くことが増えてきましたが、結局のところエントリを書くこと自体が振り返りと言えるんじゃないでしょうか。</p>
+
+<h2>来年は・・・</h2>
+
+<p>行動経済学に基づいたマーケットエンジニアリング、なんていうのは面白そうですよね、とか思っていたり。</p>
+
+<h2>その他</h2>
+
+<p>このエントリは査読とかしてないので、とくに雑です。</p>
+
+</article>
+<aside class="tags">
+  <h1>Tags</h1>
+  <ul class="tags">
+  <li><a href="/tag/perl.html">perl(32)</a></li>
+  <li><a href="/tag/docker.html">docker(12)</a></li>
+  <li><a href="/tag/memo.html">memo(9)</a></li>
+  <li><a href="/tag/b32.4OBZ3Y4CU7RYHIA.html">ポェム(7)</a></li>
+  <li><a href="/tag/yapc.html">yapc(5)</a></li>
+  <li><a href="/tag/b32.4S525ZUDWPTZFMHFUKBQ.html">仮想環境(5)</a></li>
+  <li><a href="/tag/DaaS.html">DaaS(4)</a></li>
+  <li><a href="/tag/Otogiri.html">Otogiri(4)</a></li>
+  <li><a href="/tag/community.html">community(4)</a></li>
+  <li><a href="/tag/mysql.html">mysql(4)</a></li>
+  <li><a href="/tag/tutum.html">tutum(4)</a></li>
+  <li><a href="/tag/Docker.html">Docker(3)</a></li>
+  <li><a href="/tag/VZNope.html">VZNope(3)</a></li>
+  <li><a href="/tag/openvz.html">openvz(3)</a></li>
+  <li><a href="/tag/b32.423JTZ43VY.html">涙目(3)</a></li>
+  <li><a href="/tag/Perl.html">Perl(2)</a></li>
+  <li><a href="/tag/Unity.html">Unity(2)</a></li>
+  <li><a href="/tag/adventcalendar.html">adventcalendar(2)</a></li>
+  <li><a href="/tag/failure.html">failure(2)</a></li>
+  <li><a href="/tag/report.html">report(2)</a></li>
+  <li><a href="/tag/b32.4OB2DY4DUI.html">メモ(2)</a></li>
+  <li><a href="/tag/b32.4OB2ZY4DTXRYHPHDQOEA.html">レポート(2)</a></li>
+  <li><a href="/tag/b32.42LYK.html">旅(2)</a></li>
+  <li><a href="/tag/b32.FZHEKVA.html">.NET(1)</a></li>
+  <li><a href="/tag/BigQuery.html">BigQuery(1)</a></li>
+  <li><a href="/tag/GKE.html">GKE(1)</a></li>
+  <li><a href="/tag/Perl-Lint.html">Perl-Lint(1)</a></li>
+  <li><a href="/tag/YA8C.html">YA8C(1)</a></li>
+  <li><a href="/tag/api.html">api(1)</a></li>
+  <li><a href="/tag/arukas.html">arukas(1)</a></li>
+  <li><a href="/tag/azure.html">azure(1)</a></li>
+  <li><a href="/tag/bigquery.html">bigquery(1)</a></li>
+  <li><a href="/tag/builderscon.html">builderscon(1)</a></li>
+  <li><a href="/tag/cloudsql.html">cloudsql(1)</a></li>
+  <li><a href="/tag/cognitive-services.html">cognitive-services(1)</a></li>
+  <li><a href="/tag/etc.html">etc(1)</a></li>
+  <li><a href="/tag/face-api.html">face-api(1)</a></li>
+  <li><a href="/tag/fluentd.html">fluentd(1)</a></li>
+  <li><a href="/tag/b32.NBQWG2DJN5VGSLTQNU.html">hachioji.pm(1)</a></li>
+  <li><a href="/tag/haproxy.html">haproxy(1)</a></li>
+  <li><a href="/tag/isucon.html">isucon(1)</a></li>
+  <li><a href="/tag/life.html">life(1)</a></li>
+  <li><a href="/tag/linux.html">linux(1)</a></li>
+  <li><a href="/tag/mail.html">mail(1)</a></li>
+  <li><a href="/tag/management.html">management(1)</a></li>
+  <li><a href="/tag/mecab.html">mecab(1)</a></li>
+  <li><a href="/tag/microsoft.html">microsoft(1)</a></li>
+  <li><a href="/tag/mishimapm.html">mishimapm(1)</a></li>
+  <li><a href="/tag/nginx.html">nginx(1)</a></li>
+  <li><a href="/tag/openark-kit.html">openark-kit(1)</a></li>
+  <li><a href="/tag/ops.html">ops(1)</a></li>
+  <li><a href="/tag/b32.OBSXE3HFQWS6LLNG4W6I6.html">perl入学式(1)</a></li>
+  <li><a href="/tag/plenv.html">plenv(1)</a></li>
+  <li><a href="/tag/pmbeginners.html">pmbeginners(1)</a></li>
+  <li><a href="/tag/riji.html">riji(1)</a></li>
+  <li><a href="/tag/shell.html">shell(1)</a></li>
+  <li><a href="/tag/sisimai.html">sisimai(1)</a></li>
+  <li><a href="/tag/td-agent.html">td-agent(1)</a></li>
+  <li><a href="/tag/team.html">team(1)</a></li>
+  <li><a href="/tag/test.html">test(1)</a></li>
+  <li><a href="/tag/tool.html">tool(1)</a></li>
+  <li><a href="/tag/travis-ci.html">travis-ci(1)</a></li>
+  <li><a href="/tag/ubuntu.html">ubuntu(1)</a></li>
+  <li><a href="/tag/ukigumo.html">ukigumo(1)</a></li>
+  <li><a href="/tag/xml.html">xml(1)</a></li>
+  <li><a href="/tag/b32.4OBK7Y4CXXRYFKHDQOZ6HA4I4OB2U.html">クソエントリ(1)</a></li>
+  <li><a href="/tag/b32.4OB2JY4DS7RYFN7DQO6ONCEQ4WFJ7Z5FRDU2DGA.html">ヤプシー成功祈願(1)</a></li>
+  <li><a href="/tag/b32.4WA2LZN2W4.html">健康(1)</a></li>
+  <li><a href="/tag/b32.5CD2VZ4EW3UKRAHIVKPA.html">自然言語(1)</a></li>
+  <li><a href="/tag/b32.5GN3XZVQS4.html">電気(1)</a></li>
+  </ul>
+</aside>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

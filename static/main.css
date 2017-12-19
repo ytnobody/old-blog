@@ -1,0 +1,118 @@
+body {
+    background-color: #000;
+    background-image: url(/static/bg.png);
+    color: #666;
+}
+
+code {
+    background-color: #000;
+    color: #9c6;
+}
+
+div.main-container {
+    max-width: 900px;
+    margin: auto;
+}
+
+p.written_at {
+    font-weight: 900;
+    color: #ccc;
+}
+
+article {
+    max-width: 880px;
+    margin: auto;
+    padding: 4px 12px;
+    border: 1px solid #666;
+    background-color: #333;
+    color: #999;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+a, h1 {
+    color: #9c6;
+}
+
+blockquote {
+    border: 1px solid #666;
+}
+
+blockquote p {
+    font-size: 1.0em;
+}
+
+ul.tags, nav ul {
+    list-style: none;
+    min-height: 40px;
+}
+
+ul.tags li, nav ul li {
+    float: left;
+    margin-left: 10px;
+}
+
+aside, section, footer {
+    clear: both;
+}
+
+article h1 {
+    border-left: 10px solid #9c6;
+    padding-left: 10px;
+    font-size: 2.0em;
+}
+
+article h2 {
+    border-left: 2px solid #999;
+    border-bottom: 1px solid #999;
+    padding-left: 10px;
+    font-size: 1.4em;
+    color: #ccc;
+}
+
+article h3 {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ccc;
+}
+
+a:hover {
+    color: #cf9;
+}
+
+pre {
+    background-color: #000;
+    border: 1px solid #666;
+}
+
+dl.meta.created,
+dl.meta.modified {
+    margin: 0px;
+}
+
+dl.meta.created dt,
+dl.meta.created dd.time,
+dl.meta.modified dt,
+dl.meta.modified dd.time {
+    float: left;
+    margin-right: 10px;
+}
+
+div.entry {
+    margin-bottom: 20px;
+}
+
+img.photo, section article p img {
+    margin: auto;
+    text-align: center;
+    display: block;
+    max-width: 400px;
+    min-width: 120px;
+    width: 80%;
+    border: 10px solid white;
+}
+
+div.center {
+    text-align: center;
+    width: 100%;
+}

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+tutumを使ってserviceをdigital oceanに乗せてみた | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-10-22-16-15-02.html">DockerにRijiを乗っけてみた</a>
+    <li class="next">next: <a href="/entry/2014-11-06-18-42-10.html">Google Container Engine(GKE)が発表されたので、早速試してみた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>tutumを使ってserviceをdigital oceanに乗せてみた</h1>
+
+<p>ナウでクールなdockerer(今テキトウに名前考えた)な皆さんならもう既にご存知かつご利用されているのかもしれませんが、Docker as a Service(DaaS)の一つである''tutum''をつかって、当ブログをdigital oceanに乗せてみました。</p>
+
+<h2>tutumとは？</h2>
+
+<p><a href="https://www.tutum.co/">tutum</a>は、DaaSプロバイダの一つで、大変雑に言うと「docker imageをdigital ocean等にいい感じにデプロイしてくれるやつ」です。</p>
+
+<p>まだbetaサービスということもあって、無料で利用可能ですが、機能面で見ると「ほんとにこれタダでいいの？」というくらいにてんこ盛りです。tutumでできることの一例を列挙すると、</p>
+
+<ul>
+<li>プライベートなdocker registryがある（つまりdeployしたいけどdockerfile見られたくない！みたいな要件に応えられる）</li>
+<li>digital oceanにdockerコンテナを上げることができる</li>
+<li>上がってるサービスのリソース利用状況グラフを閲覧できる</li>
+<li>同一構成のコンテナを増やしたり減らしたりできる</li>
+<li>出来合いのdocker imageをそのまま利用できる</li>
+<li>当たり前だけどコンテナのログを見れる</li>
+<li>pipでインストールできるCLIがある</li>
+<li>英語しかないけど、ドキュメントがやたらしっかりしてる</li>
+</ul>
+
+
+<p>という具合。基本的な機能に加え、リソース監視ができたりとか、まずまず出来が良さそうな感じですね。</p>
+
+<h2>tutumアカウントを取得する前に</h2>
+
+<p>digital oceanアカウントを取得しておいたほうが良いです。なお、digital oceanにノードをたてるときに幾ばくかのお金が必要になります。</p>
+
+<p>そんなわけで、とりあえずdigital oceanには$10.00ほどチャージしておくと良いですね。支払いは<a href="https://www.paypal.jp/jp/home/">paypal</a>が簡単です。</p>
+
+<h2>まずアカウントを作る</h2>
+
+<p>手始めに<a href="https://www.tutum.co/">www.tutum.co</a>にアクセスし、「Get started - free forever」って書かれている黄色いボタンをクリックします。</p>
+
+<p>すると、よくあるサインアップフォーム的なものが登場しますので、素直にサインアップすると、アカウントの作成が完了します。</p>
+
+<p>ちなみにGitHubやDockerHubのアカウントでも登録できるのですが、その場合、あとで必要になるはずのtutumパスワードが登録されません。その場合は<a href="https://dashboard.tutum.co/accounts/password/reset/">パスワードの初期化</a>をする必要がありますので、ご注意を。</p>
+
+<p>登録が完了すると、Borja Burgos という人からメールが来ます。ちなみにこの人はtutum社のCEOです。メールの内容は概ね以下のような感じの内容です。</p>
+
+<p>  「アナタ、tutumに登録してくれてホント嬉しいデース」</p>
+
+<p>  「ヨカッタラ、tutumに登録した理由教えてクダサーイ」</p>
+
+<p>  「出来たらァ、アナタのお仕事（役職とか職務）についても教えてほしいデースネー」</p>
+
+<p>  「ソレデヨカッタラ、このメールにレスポンスしてくれるとホント嬉しいデスヨー」</p>
+
+<p>  「ワカンナイ事あったらメールしてクダサーイ」</p>
+
+<p>ちなみにメールに返信してあげると、アカウントのアクティベーションが行われるようです（人力？！）。</p>
+
+<p>そして、Borjaの言うように、分からん点をメールで質問すると、なんと超絶丁寧なレスポンスをくれるのです。この細やかなユーザ対応に僕はヤラレマシタね〜！</p>
+
+<h2>digital oceanへのお布施は済んだか？</h2>
+
+<p>さて、ここからはいよいよサービスをデプロイしていくための手順です。</p>
+
+<p>まずwebからログインしますと、ダッシュボード画面が出てきます。</p>
+
+<p>どまんなかにある緑のボタンに「まずノードを用意しろ」的なことが書いてあるので、そこを押すと、「Launch new node cluster」という緑のボタンが出てきますので、そこからよしなにノードを用意してください。この時、digital oceanへのお布施がされていないと、ノードを作れませんのでご注意。</p>
+
+<p>あとはノードが出来たら、Deployボタンを押すと、サービスデプロイの準備が整います。</p>
+
+<h2>docker imageをtutumのプライベートレジストリにpushしよう</h2>
+
+<p>ここからは一旦ターミナルでの作業。</p>
+
+<p>次に、tutumのプライベートレジストリに、デプロイする予定のdocker imageをpushします。</p>
+
+<p>そのために、docker loginコマンドを使って、tutumにログインしておく必要があります。</p>
+
+<pre><code>$ sudo docker login tutum.co
+</code></pre>
+
+<p>この時、ユーザー名、tutumパスワード、メールアドレスを質問されますので、すべて正しく入力すると、ログインできます。</p>
+
+<p>ログイン出来たら、docker tagコマンドを使って、imageにtutum用のタグを割り当てます。</p>
+
+<pre><code>$ sudo docker tag [デプロイしたいイメージ名（例：ytnobody/docker-riji）] [tutum上のimage tag名（例：tutum.co/ytnobody/docker-riji）]
+</code></pre>
+
+<p>tutum上のtag名は必ず「tutum.co/ユーザー名/任意の名称」のルールで名づけてください。</p>
+
+<p>ここまで出来たら、あとはdocker pushするだけ。</p>
+
+<pre><code>$ sudo docker push [tutum上のimage tag名]
+</code></pre>
+
+<p>これでtutum上にイメージを展開出来ました。あとはサービスコンテナをデプロイするだけです。</p>
+
+<h2>いよいよサービスコンテナのデプロイ</h2>
+
+<p>webダッシュボードに戻り、servicesタブをクリックし、右上の「Launch new service」をクリックしてください。</p>
+
+<p>すると、イメージの選択画面が出てきますので、Private imagesというボタンを押してください。</p>
+
+<p>前項で無事にtutumにイメージ展開出来ていると、ここからデプロイ対象となるイメージを選択できます。</p>
+
+<p>デプロイ対象のイメージの右にSelectボタンがあるので、それをクリックすると、デプロイ設定画面が登場します。</p>
+
+<p>実際に触りそうな箇所だけ説明すると、「Advanced options」ボタンを押した先に「Ports」という項目があって、そこのNode portを変更できるのと（dynamicだとランダムポート）、「Next:environment variables」を押した先に「Add environment variable」という項目があるので、そこから環境変数を追加できるという点だけ取り急ぎ押さえておけばよいかと思います。</p>
+
+<p>ひと通り設定が完了したら、あとは「Launch service」を押すだけ。</p>
+
+<p>これでサービスコンテナがデプロイできます。</p>
+
+<h2>まとめ</h2>
+
+<p>DaaSプロバイダの超有望株であるところのtutumを紹介しました。</p>
+
+<p>今回は執筆時間の関係で画像を掲載出来ておりませんが、時間のあるタイミングで参考画像も掲載していきたいと思います。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/docker.html">docker</a></li>
+      <li><a href="/tag/tutum.html">tutum</a></li>
+      <li><a href="/tag/DaaS.html">DaaS</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-10-23 20:18</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-10-24 01:42</dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

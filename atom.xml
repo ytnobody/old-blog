@@ -1,0 +1,1732 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>All Your Bugs Are Belong To Ass</title>
+<link rel="alternate" href="http://ytnobody-riji.azurewebsites.net" />
+<author>ytnobody</author>
+<generator uri="https://github.com/Songmu/p5-Riji" version="v0.9.8">Perl Riji</generator>
+<id>tag:ytnobody-riji.azurewebsites.net,2013-08-26:</id>
+<updated>2016-10-18T17:49:46+09:00</updated>
+<entry>
+<title type="text">Tumblrにブログのお引越し？をします。</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-10-18-17-44-52.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>今見ているこのブログですが、<a href="http://ytnobody.bitbucket.org/">http://ytnobody.bitbucket.org/</a> へアドレスを変更し、今後更新をしない方針とします。</p>
+
+<p>そして、新しいブログは引き続き <a href="http://ytnobody.net/">http://ytnobody.net/</a> で閲覧できる様に更新していきます。見れない場合は<a href="http://ytnobody-tech.tumblr.com/">http://ytnobody-tech.tumblr.com/</a> で見れます。</p>
+
+<p>引き続きよろしくお願いします。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-10-18:entry-2016-10-18-17-44-52.html</id>
+<published>2016-10-18T17:49:46+09:00</published>
+<updated>2016-10-18T17:49:46+09:00</updated>
+</entry>
+<entry>
+<title type="text">エラーで帰ってきてしまったメールの解析</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-08-17-00-47-42.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>どーも、わいとんです。</p>
+
+<p>主題のような作業をするのに際し、<a href="http://libsisimai.org/ja/">Sisimai</a>が大変便利だったので、APIコンテナを作ってしまいました。</p>
+
+<ul>
+<li><a href="https://hub.docker.com/r/ytnobody/sisimai-api/">ytnobody/sisimai-api on docker hub</a></li>
+</ul>
+
+
+<h2>使い方</h2>
+
+<p>SYNOPSISに書いてあるままですが、まず <code>docker pull ytnobody/sisimai-api</code> をしたのちに</p>
+
+<pre><code>docker run --rm -it -v /path/to/mailbox:/opt/mail -p 5000:5000 ytnobody/sisimai-api
+</code></pre>
+
+<p>とすればだいたい起動できます。 <code>/path/to/mailbox</code> には、エラーメールが入ってるメールボックスを指定してあげましょう。</p>
+
+<p>コンテナが起動した状態で <code>http://your-docker-host:5000/</code> とかにリクエストをすると、エラーメールのサマリーをJSON形式で取得できます。内容については<a href="http://search.cpan.org/dist/Sisimai/lib/Sisimai/Data.pm#PROPERTIES">Sisimai::Dataのプロパティ</a>を参照してください。</p>
+
+<h2>まとめ</h2>
+
+<p>エラーメールの解析には <a href="http://libsisimai.org/ja/">Sisimai</a> が大変便利です。それをさらに雑に扱いたかったので、勢い余ってJSON-APIを作ってコンテナ化してしまいました。</p>
+
+<p>ちょっとした小間使いにちょうど良い使い勝手になっていると思いますので、どうぞよろしくお願いします。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-08-17:entry-2016-08-17-00-47-42.html</id>
+<published>2016-08-17T00:59:14+09:00</published>
+<updated>2016-08-17T00:59:14+09:00</updated>
+</entry>
+<entry>
+<title type="text">Microsoft Cognitive ServicesのFace APIをPerlから使ってみる</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-08-15-09-23-25.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>どーも、わいとんです。</p>
+
+<p>近頃、業務の延長線上の分野として、顔のパーソナライズ認識、及びそれらのリレーショナルな利用について興味が湧いております。</p>
+
+<h2>「顔画像のパーソナライズ認識とリレーショナルな利用」の例</h2>
+
+<p>例えばFacebookやvk.comなどのような実名SNSでは、概ね以下のような情報を登録するように促されることでしょう。</p>
+
+<ul>
+<li>姓名</li>
+<li>性別</li>
+<li>生年月日</li>
+<li>居住地</li>
+<li>興味のあること</li>
+<li>顔画像</li>
+</ul>
+
+
+<p>さて、これらの情報を一般的なリレーショナルデータベースのテーブル構造として捉えた場合、「姓名」「性別」「年齢」「居住地」「興味のあること」でのレコード検索が可能かと思います。</p>
+
+<p>ところがもし、「顔画像」の近似値でレコード検索できるとしたら・・・</p>
+
+<p>端的な例えですが、こんなことができるようになるわけですね。</p>
+
+<p><img src="/static/2016-08-15_10.06.21.jpg" alt="これは2011年のわいとんです・・・" /></p>
+
+<p>2011年の写真くらいしかさっくり入手できなかったのですが、頭の上に何か表示が出てますよね。その気になれば、年齢とか居住地とか出せそうではあるのですが、プライバシー保護の観点から、表示されて良い情報は非常に限定的かと思います。</p>
+
+<p>こんな感じのことを<a href="https://www.microsoft.com/cognitive-services/">Microsoft Cognitive Services</a>を使えば実現できそうだなぁ、と直感しておりまして、ひとまず一番慣れているperl5で利用できるようモジュールを書いてみました。</p>
+
+<p><a href="https://github.com/ytnobody/p5-Net-Microsoft-CognitiveServices-Face">ytnobody/p5-Net-Microsoft-CognitiveServices-Face</a></p>
+
+<p>ちなみにCognitive ServicesのFace APIは、試すだけなら<a href="https://www.microsoft.com/cognitive-services/en-us/pricing">3万トランザクション/月まで無料</a>ですので、割といい感じだと思います。</p>
+
+<p>※Microsoft Cognitive Servicesを利用するためには、あらかじめMicrosoft Azureを利用している必要があります。ここではAzureやCognitive Servicesの設定については細かく説明しませんが、Azure上でCognitive Services - Face APIをデプロイするとAccess Keyが払い出されるので、そのことだけは覚えておいてください。</p>
+
+<h2>Net::Microsoft::CognitiveServices::Faceを使ってみる</h2>
+
+<p>まぁ<a href="https://github.com/ytnobody/p5-Net-Microsoft-CognitiveServices-Face/blob/master/eg/identify.pl">eg/identify.pl</a>あたりを見てもらえると何となく使い方などがわかるとは思うんですが、一応解説。</p>
+
+<h3>まずFace APIのドキュメンテーションを把握しておく</h3>
+
+<p>Net::Microsoft::CognitiveServices::Face(以下CS::Face)のインターフェースは、ほぼ<a href="https://dev.projectoxford.ai/docs/services/563879b61984550e40cbbe8d/operations/563879b61984550f30395236">Face APIのドキュメンテーション</a>に合わせて作ってあります。したがって、Face APIのドキュメンテーションを読んでおかないと使い方がピンとこないです。</p>
+
+<h3>名前が長いので変数に食わしておく</h3>
+
+<p>ハイ、名前が長いのです・・・</p>
+
+<pre><code>my $api = 'Net::Microsoft::CofnitiveServices::Face';
+</code></pre>
+
+<h3>Access Keyを食わせる</h3>
+
+<p>まずは何をするにもAccess Keyを食わせないことにはアクセスさせてくれませんので、これを食わせます。</p>
+
+<pre><code>$api-&gt;access_key('YOUR_ACCESS_KEY');
+</code></pre>
+
+<p><code>YOUR_ACCESS_KEY</code> は適宜ご自身のAccess Keyに置き換えてください。</p>
+
+<h3>Person Groupを作る</h3>
+
+<p>人物情報を格納するために、Face APIにてPerson Groupを作っておく必要がありますので、これを作ります。 <code>$person_group_id</code>は半角英数及びハイフン・アンダーバーが利用可能です。 <code>name</code>は文字列で好きな値を設定できます。</p>
+
+<pre><code>my $person_group_id = 'my_person_group';
+$api-&gt;PersonGroup-&gt;create($person_group_id, name =&gt; 'My Person Group');
+</code></pre>
+
+<h3>Person GroupにPersonを登録していく(人数分やる)</h3>
+
+<p>顔画像の登録をする前に、人物情報となるPersonをPerson Groupに登録していきます。<code>name</code>及び<code>userData</code>に任意の文字列を設定できます。</p>
+
+<pre><code>my $person = $api-&gt;Person-&gt;create($person_group_id, 
+    name     =&gt; 'ytnobody', 
+    userData =&gt; 'Favorite:Programming,Motorcycle,Cooking,Anime',
+);
+</code></pre>
+
+<h3>人物情報に顔画像を紐付ける(人数分やる)</h3>
+
+<p>先ほど登録した人物情報に顔画像を紐付けます。<code>$image</code>には、外部から参照可能なurlを食わせる必要があります。</p>
+
+<pre><code>my $person_id = $person-&gt;{personId};
+my $image     = 'https://lh5.googleusercontent.com/-8qD5BkKOV3g/TtpRC-8J_wI/AAAAAAAAAlY/yYk2AFtM51U/s1024/20111203-P1000424.jpg';
+$api-&gt;Person-&gt;add_face($person_group_id, $person_id, $image);
+</code></pre>
+
+<h3>Person Groupに顔画像を学習させる</h3>
+
+<p>顔画像の登録が済んだら、Person Groupに顔画像の学習をさせます。学習には顔画像の数によってかかる時間が異なりますが、学習の済んでいないPerson Groupでは人物特定ができませんので、顔画像の登録後には必ず実施する必要があります。</p>
+
+<pre><code>$api-&gt;PersonGroup-&gt;train($person_group_id);
+</code></pre>
+
+<p>なお、以下のようにすることで学習状態の確認が可能です。</p>
+
+<pre><code>my $result = $api-&gt;PersonGroup-&gt;training_status($person_group_id);
+say $result-&gt;{status}; ## "succeeded" となっていれば学習完了。
+</code></pre>
+
+<h3>異なる顔画像からの人物特定</h3>
+
+<p>全く別の画像から顔画像を検出します。</p>
+
+<pre><code>my $detected = $api-&gt;Face-&gt;detect('https://mynavi-agent.jp/it/geekroid/ent51_img14.jpg');
+my $face_id  = $detected-&gt;[0]{faceId};
+</code></pre>
+
+<p>検出できた顔画像から、該当する人物のpersonIdを取得します。<code>faceIds</code>には本来複数のface_idを食わせることが可能ですが、今回は1件のみ食わせました。</p>
+
+<p>なお、<code>maxNumOfCandidatesReturned</code>にはマッチした人物の件数を指定できますが、1を指定することで一人に絞り込むことができます。</p>
+
+<p><code>confidenceThreshold</code>には一致率を0〜1の範囲で指定ができますが、この値に及ばない一致率の結果を足切りすることができます。</p>
+
+<pre><code>my $ident = $api-&gt;Face-&gt;identify(
+    faceIds                    =&gt; [ $face_id ],
+    personGroupId              =&gt; $person_group_id,
+    maxNumOfCandidatesReturned =&gt; 1,
+    confidenceThreshold        =&gt; 0.6,
+);
+my $candidated_person_id = $ident-&gt;[0]{candidates}[0]{personId};
+</code></pre>
+
+<h3>特定できた人物の情報を取得</h3>
+
+<p>ここまでである程度「この人間ですよね？」というレベルのマッチングがかかっているので、後はpersonIdを元にPersonを取得できればOKという感じになります。</p>
+
+<pre><code>$person = $api-&gt;Person-&gt;get($person_group_id, $candidated_person_id);
+printf "name =&gt; %s \n%s\n", $person-&gt;{name}, $person-&gt;{userData};
+</code></pre>
+
+<h2>まとめ</h2>
+
+<p>PerlからMicrosoft Cognitive ServicesのFace APIを利用するためのモジュール<code>Net::Microsoft::CognitiveServices::Face</code>を作ってみたので紹介しました。</p>
+
+<p>Cognitive Servicesには他にも画像・動画などの認識にまつわるAPIがあるので、今までにない仕組みを作るのに一役買ってくれるんじゃないでしょうか。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-08-15:entry-2016-08-15-09-23-25.html</id>
+<published>2016-08-15T15:01:33+09:00</published>
+<updated>2016-08-15T15:01:33+09:00</updated>
+</entry>
+<entry>
+<title type="text">救急車に運ばれて熱中症と診断されたのでレポート</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-08-10-10-04-23.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>どーも、わいとんです。</p>
+
+<p>タイトルの通り、昨晩救急車のお世話になりました。まさか自分で自分のために救急車を呼ぶことになろうとは、僕自身非常にショックを受けております。</p>
+
+<h2>何が起こったのか</h2>
+
+<p>ざっくり言うと</p>
+
+<p>「早めに帰宅できたので晩酌していたら、突然目が眩んで右首筋が痺れ、右半身全体にかけて、左半身も一部痺れてヘナヘナと倒れこんだ」</p>
+
+<p>というようなことが起こりました。</p>
+
+<p>あまりに突然でしたし、父親が過去にくも膜下出血で倒れているので、最初は脳梗塞を疑って念のため救急車を呼びました。</p>
+
+<h2>東京・羽田では気温38度を記録。夜も外気は32度。</h2>
+
+<p>そもそも昨日の東京の気温をみてみると・・・</p>
+
+<p><img src="http://az416740.vo.msecnd.net/static-images/forecaster/diary/image/50021/1/20160809114406/large.jpg" alt="羽田で38度" /></p>
+
+<p>羽田で38度！自宅のある大井町駅付近は羽田からほど近いため、この気温と大差なかったんじゃないでしょうか。</p>
+
+<p>そして夜８時を過ぎても32度をキープ。正直、道産子には厳しい・・・＞＜</p>
+
+<h2>疲労・水分不足・灼熱・アルコホール</h2>
+
+<p>実は前日の夜中、同僚が深夜メンテ作業を行っており、気になって断続的に睡眠とSlackを往復しておったのですが、そのお陰で疲労が抜けなかったという下地がありました。</p>
+
+<p>また、思い返してみると先日は水分の摂取量がいつもよりも少なかったような気がします。（とは言っても普段から水分摂取量を気にしているわけではないので、気のせいかもしれないですけど）</p>
+
+<p>そして前述の異常な高気温。多分沖縄より暑かったんじゃないですかね・・・</p>
+
+<p>そこにトドメのビール。これが良くなかったんじゃないかなと思います。</p>
+
+<p>実は昨日、ビールを飲んでも「んまあああああアァァァイッッッ！！！！！」とはならなくて、飲みかけのプレモルを途中で嫁さんにあげちゃったくらいには美味くなかったんですが、その時点で体がビールを拒絶していたのかもしれませんね。</p>
+
+<h2>救急搬送先の脳外科医のアドバイス</h2>
+
+<p>搬送先では脳に異常がないかCTスキャンで調べてもらったのですが、特に異常なしとのことでした。</p>
+
+<p>その後問診・眼窩診察しましたが、これも異常なし。</p>
+
+<p>脳外科医曰く「熱中症からの筋痙攣と意識障害じゃないか」という診断。「水分をしっかりとって、エアコンの設定温度は低くしてください」というアドバイスをいただきました。</p>
+
+<h2>まとめ</h2>
+
+<ul>
+<li>帰宅したら「ビールで一杯」の前に水分補給を！</li>
+<li>エアコンをケチるべからず（別にケチったつもりはないが・・・）</li>
+<li>ビールが不味いときには水を飲もう</li>
+<li>よく寝ましょう</li>
+<li>痺れ・意識障害がある時は遠慮なく119番</li>
+<li>とにかく水分を補給しろ！話はそれからだ！</li>
+</ul>
+
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-08-10:entry-2016-08-10-10-04-23.html</id>
+<published>2016-08-10T10:43:03+09:00</published>
+<updated>2016-08-10T10:43:03+09:00</updated>
+</entry>
+<entry>
+<title type="text">YAPC::Asia Hachioji 2016 mid in Shinagawa で語ってきた</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-07-04-10-33-02.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>どーも。わいとん・イン・ザ・クローズドオオイマチです。</p>
+
+<p>7/2(土)〜7/3(日) に日本マイクロソフト社で開催された<a href="http://yapcasia8oji-2016mid.hachiojipm.org/">YAPC::Asia Hachioji 2016 mid in Shinagawa</a>(以下YA8C)で、プレイングマネージャとしての知見を語ってきました。このような機会を設けていただいたuzullaさん、makamakaさん、そして会場にまつわる準備をしてくれたmyfinderさん、スタッフの皆さん、ありがとうございました。</p>
+
+<p><figure class="swipe"><iframe src="https://www.swipe.to/embed/8276q" allowfullscreen></iframe></figure><style>figure.swipe{display:block;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;}figure.swipe iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></p>
+
+<h2>感想・所感など</h2>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="ja" dir="ltr">ヤパチー最高だったしありがたい</p>&mdash; 寝床おじさん (@ytnobody) <a href="https://twitter.com/ytnobody/status/749620722616508416">July 3, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="ja" dir="ltr">圧倒的であった</p>&mdash; 寝床おじさん (@ytnobody) <a href="https://twitter.com/ytnobody/status/749621242227859456">July 3, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="ja" dir="ltr">たなかさんのD部屋でのトーク、アレは本当にMS系テクノロジーとウェッブ系おじさんが邂逅していた瞬間だと思う。</p>&mdash; 寝床おじさん (@ytnobody) <a href="https://twitter.com/ytnobody/status/749782015944175616">July 4, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+<p>基本的には最高であったわけですが、私はほとんど「飛び入りトークセッションコーナー」（通称Dルーム）というところに常駐してまして、明らかに相当ディープなセッションが多かったという気がしております。</p>
+
+<p>唐突に発表スライドを書きながらBeta版と称して発表する人、前打ち合わせなしにPHP漫談をやってのける２人組（というか片方は主催）、RHEL + .NET Core + VSCode で即席WebAppを仕立て上げるツワモノなどなど、大変にバラエティに富んだ内容でした。</p>
+
+<p>打ち上げでは、uzulla氏からYA8Cの象徴（？）という見えないタスキをpapix氏に託す場面もありましたが、いずれきっと次があるだろうし、彼らがヘルプを求めてきたときにはできる限りの手助けはするつもりです。</p>
+
+<p>待ってるぞ、次回！</p>
+
+<h2>その他：飛び入りセッションで発表したスライド</h2>
+
+<p><figure class="swipe"><iframe src="https://www.swipe.to/embed/0399x" allowfullscreen></iframe></figure><style>figure.swipe{display:block;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;}figure.swipe iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-07-04:entry-2016-07-04-10-33-02.html</id>
+<published>2016-07-04T11:17:00+09:00</published>
+<updated>2016-07-04T11:43:12+09:00</updated>
+</entry>
+<entry>
+<title type="text">PM Beginners #2 で喋ってきた</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-06-13-11-30-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p><img src="https://dl.dropboxusercontent.com/u/9480685/2016-06-10-20-34-36.jpg" class="photo"></p>
+
+<p>6/10(金)、渋谷は道玄坂上にて、<a href="https://twitter.com/i47_rozary">@i47_rozary</a>氏主催による<a href="http://pmbegginers.connpass.com/event/31721/">PM Beginners #2</a>に参加してきました。</p>
+
+<h2>「これは教科書どおりのウォーターフォールですね！」</h2>
+
+<p><a href="https://swipe.to/9999s">Scrum was fired/スクラムはやられた</a> というスライドで発表しました。</p>
+
+<p>上流工程のボトルネックを少なくするため、各上流工程の合間にかならずレビューを入れる方法を <code>ReDD - レビュー駆動開発</code> という名で再定義してみたのですが、言ってしまえば「正しいウォーターフォール開発」です。
+しかし、ウォーターフォールっていうだけで若者から加齢臭扱いされて逃げられてしまいますし、そもそもウォーターフォールをちゃんとわかっていない人も多いので（私も含めて）、一旦要素の再定義を行って、既存のフローに+αしてみたというお話でした。</p>
+
+<p>上流工程全てにレビューを入れるという方法はチーム内ですでに進めているのですが、ReDDという名はまだチームでもぜんぜん浸透させてない状況なので、さっさと定義を広めるところからやらないといけなくて、ある程度期間を経てから知見を改めて共有したいと思っています。</p>
+
+<h2>振り返りは案外ロングスパン</h2>
+
+<p>ぼくのチームではスクラムを回していた頃、スプリントは5日間で、スプリント終了時に振り返りをしていました。他の参加者の話を聞いてみると、結構半年とかのロングスパンで振り返りをしている人が多かったのが印象的でした。</p>
+
+<h2>プロジェクトマネジメントはもっとフォーカスを当てられて良いはずだ</h2>
+
+<p>エンジニアは基本的に開発技術や手法についていろいろと知見を書き入れることが多いかと思います。
+しかし、どんな先鋭的な技術やどんな高速な処理実装も、プロジェクトマネジメントがダメダメだと、リリースされることのないコードの不良在庫となってしまいます。</p>
+
+<p>コードの不良在庫を少なく、どんどんリリースできる体制を作るためにも、プロジェクトマネジメントの知見は有効だと思います。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-06-13:entry-2016-06-13-11-30-00.html</id>
+<published>2016-06-13T12:17:08+09:00</published>
+<updated>2016-06-13T12:17:08+09:00</updated>
+</entry>
+<entry>
+<title type="text">BBQ::Builderscon に行ってきた</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-05-29-09-06-46.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>先日、<a href="https://www.facebook.com/events/803942576374123/">BBQ::Builderscon</a>という集まりがあったので行ってきました。</p>
+
+<p>やるぞーと言い出したのは<a href="https://twitter.com/lestrrat">lestrrat</a>さん。</p>
+
+<p><img class="photo" src="/static/bcon01.jpg"></p>
+
+<p>某アメコミヒーローっぽくキメるlestrratさん。写真からもやる気が伝わってくると思います。曰く、「ちゃんとブログ書いてね！」とのことでした。</p>
+
+<p>会場の準備を整えてくださった<a href="https://twitter.com/uzulla">uzulla</a>さん、企画しておいしいお肉をご馳走してくださったlestrratさん、有難うございました！</p>
+
+<p><img class="photo" src="/static/bcon02.jpg"></p>
+
+<p>なお、本エントリの写真はすべてuzullaさんの手によるものです。ありがたく拝借させていただきます。</p>
+
+<h2>これはBBQというより・・・シュラスコだ！！！</h2>
+
+<blockquote class="twitter-tweet" data-partner="tweetdeck"><p lang="ja" dir="ltr">みんな、「カンファレンス」と「美味しい肉」の両方とも好きだろ？ ちょうどいいイベントがあるんですよ… 基本的に僕が肉を焼いて皆様に食べていただきたいだけのイベントです。参加お待ちしてます <a href="https://t.co/4miCUobQPc">https://t.co/4miCUobQPc</a> <a href="https://twitter.com/hashtag/builderscon?src=hash">#builderscon</a></p>&mdash; Daisuke Maki (@lestrrat) <a href="https://twitter.com/lestrrat/status/731994916163751936">May 15, 2016</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+<p>この言葉通り、まさにひたすらにlestrratさんが肉を焼きまくって切りまくって振舞いまくるというものでした。いわばシュラスコ状態。</p>
+
+<p><img class="photo" src="/static/bcon12.jpg"></p>
+
+<p>こんな感じでlestrratさんが肉を焼き・・・</p>
+
+<p><img class="photo" src="/static/bcon13.jpg"></p>
+
+<p>こんな感じで提供されました。どうみてもシュラスコです。</p>
+
+<p><img class="photo" src="/static/bcon11.jpg"></p>
+
+<p>lestrratさんのchildプロセスくんを管理するuzulla氏。2nd childくん、お肉の食べすぎでお腹がパンパンになってました。</p>
+
+<h2>そもそもBuildersconってなんだ</h2>
+
+<p><a href="http://builderscon.io/">Builderscon の公式web</a>に書かれている内容を超訳すると「技術ヲタクのためのお祭り」となっています。</p>
+
+<p>今年の12月に開催予定であり、lestrratさんが主催となって、<a href="http://blog.builderscon.io/builderscon/jp/2016/02/14/where-builderscon-is-going.html">目下準備中</a>という状況です。</p>
+
+<p><a href="http://blog.builderscon.io/builderscon/2015/08/18/mission-statement.html">ここ</a>にも書かれているように、特定の技術や業界に焦点を当てるというよりは「モノづくり」とそれに関連する技術全般をカバーするカンファレンスを目指しているようです。</p>
+
+<p>従って、IT業界のエンジニアにとどまらず、もっとたくさんの業界から発表者が集まることを期待してよさそうです。</p>
+
+<p>各業界の皆様におかれましては、ぜひ日ごろの「モノづくり」に対する情熱と技を披露していただけると良いのではないでしょうか（といってもトーク募集はまだのようですが）。</p>
+
+<h2>期待できるぞBuildersconは！</h2>
+
+<p>集まったメンバーには<a href="https://twitter.com/mackee_w">まこぴー</a>とか<a href="https://twitter.com/moznion">もずにおん</a>なんかもいたんですが、まこぴーが自力で3Dプリンターを組み立てたらしく、自作プリンターで作った20面ダイスやら3Dプリンターの冷却パーツやらを持ってきていて、極まってるなぁなどと感じたりしました。制御方法も結構詳しく話してくれてて、「既にBuildersconは始まっているのだ！」感が出ておりましたね。もずにおんあたりには録画サーバの話とか調理器具の話をしてもらいたいかも。</p>
+
+<p>あとだれかオフグリッドな太陽光発電関連の技術トークしてくれないかなぁ・・・</p>
+
+<p><img class="photo" src="/static/bcon03.jpg"></p>
+
+<p>BBQ当日に集まった面々。この中からもきっと興味深いトークを発表してくれる人が出てくるはず！</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-05-29:entry-2016-05-29-09-06-46.html</id>
+<published>2016-05-29T09:55:29+09:00</published>
+<updated>2016-05-29T09:58:53+09:00</updated>
+</entry>
+<entry>
+<title type="text">究極に雑なデプロイができるContainer as a Service &quot;arukas.io&quot;</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-02-13-21-55-23.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<h2>Docker Cloudが出た！</h2>
+
+<p>先日tutumがめでたく<a href="http://cloud.docker.com/">Docker Cloud 1.0</a>としてリリースされました。基本的にDocker Cloudは有償サービスであり、コンテナ管理の手間をお金で解決するための仕組みという位置づけとなっています。</p>
+
+<p>気になる料金プランですが、1ノードあたり1時間につき0.02ドルとなっており、Docker Cloudに1ヶ月間1ノードを管理させた場合、執筆時の相場でおよそ1500円ほどかかることになります。エンタープライズ用途に耐えうるものであることを考えると、ディスカウントっぷりがすごいなあ、という感想です。</p>
+
+<h2>TutumからDocker Cloudへの移行を検討しよう</h2>
+
+<p>ところで、今から新しくtutumにアカウントを登録しようとしてもDocker Cloudへとリダイレクトされてしまい、旧tutumへのアカウント登録ができない状態となっています。</p>
+
+<p>そして既存のtutumアカウントをお持ちの方に、大事なことを２つお伝えしておきます。</p>
+
+<ol>
+<li><p><a href="https://tutum-community.slack.com/archives/general/p1455369867002541">Tutumは2016年5月31日で終了らしいです。</a></p></li>
+<li><p>TutumユーザにはDocker CloudのEarly Supporter Codeが付与されていて、Docker Cloudで2ノードまで無料で管理させておくことが可能です。</p></li>
+</ol>
+
+
+<p>それでは「今から無料でコンテナを試してみたい！」という向きはどうすればよいか。まあ素直にDocker Cloudのfreeプランを考慮するのがよろしいかと思いますが、もうひとつの選択として<a href="http://arukas.io">Arukas</a>を使ってみる方法があります。</p>
+
+<h2>Arukasとは？</h2>
+
+<p><a href="http://arukas.io">Arukas(アルカス)</a>とは国産のコンテナプラットフォームであり、現在ベータテスト期間中とのことで、以下の機能がすべて無償で利用可能です。</p>
+
+<ul>
+<li>サービスの追加</li>
+<li>サービスのコンテナ(インスタンス)数調整</li>
+<li>コンテナへのRAM割り当て(1コンテナに対して256MB/512MBが選択できる)</li>
+<li>ノードの透過的な提供</li>
+<li>portのexpose</li>
+<li>ENVおよびCMDの指定</li>
+</ul>
+
+
+<h2>何はともあれ使ってみよう</h2>
+
+<p>とりあえずアカウントを登録し終えると、ダッシュボードが表示されます。以下のような画面ですね。</p>
+
+<p><a href="https://gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07"><img src="https://i.gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07.png" alt="https://gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07" /></a></p>
+
+<p>ここで「新しいアプリケーションを作成」をクリックすると、画面が切り替わって以下のようなフォームが登場します。</p>
+
+<p><a href="https://gyazo.com/86940a2eaf70a0600db066d79e7c3c96"><img src="https://i.gyazo.com/86940a2eaf70a0600db066d79e7c3c96.png" alt="https://gyazo.com/86940a2eaf70a0600db066d79e7c3c96" /></a></p>
+
+<p>今回は例として、先日作った<a href="http://blog.ytnobody.net/entry/2016-01-22-17-00-00.html">「ギロッポンでシースーなAPIのコンテナ」</a>を雑にデプロイしてみましょう。</p>
+
+<p>まず<code>Name</code>のところには自分で識別しやすくするためのサービス名を半角英数で入力していきます。今回は<code>giroppon</code>とでもしておきましょう。</p>
+
+<p>次に<code>Image</code>ですが、今回デプロイするDocker Imageは<a href="https://hub.docker.com/r/ytnobody/shukugawa-atom/">こちら</a>ですので、<code>ytnobody/shukugawa-atom</code>となります。</p>
+
+<p>そして<code>Port</code>に<code>7654</code>と入力します。これは<code>ytnobody/shukugawa-atom</code>がtcp/7654を使うからですね。</p>
+
+<p>これで以下のような状態になったかと思います。</p>
+
+<p><a href="https://gyazo.com/bb54eeddf6bbff9319853b4d327066da"><img src="https://i.gyazo.com/bb54eeddf6bbff9319853b4d327066da.png" alt="https://gyazo.com/bb54eeddf6bbff9319853b4d327066da" /></a></p>
+
+<p>ここまでできたら、あとは「アプリケーションを作成」ボタンをクリックするだけです。やたらシンプルですね！</p>
+
+<h2>アプリケーションが起動したら</h2>
+
+<p>実際にアプリケーションが起動すると、ダッシュボードのアプリケーション一覧には以下のように<code>giroppon</code>という名前でアプリケーションが追加されます。</p>
+
+<p><a href="https://gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6"><img src="https://i.gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6.png" alt="https://gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6" /></a></p>
+
+<p>では、アプリケーションの詳細画面を見てみましょう。</p>
+
+<p><a href="https://gyazo.com/31208a872ab78e5e2225fd97a14aa00d"><img src="https://i.gyazo.com/31208a872ab78e5e2225fd97a14aa00d.png" alt="https://gyazo.com/31208a872ab78e5e2225fd97a14aa00d" /></a></p>
+
+<p>アプリケーション新規作成のフォームとほぼ同じような構成になっている画面ですが、PortのところにコンテナへのエンドポイントURLが表示されているので、クリックしてみましょう。</p>
+
+<p>すると、ytnobody/shukugawa-atomが提供するAPIがレスポンスを返してきますね。ではgetパラメータとして<code>text=六本木で寿司</code>を渡してみます。</p>
+
+<p><a href="https://gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d"><img src="https://i.gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d.png" alt="https://gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d" /></a></p>
+
+<p>このようにコンテナの動作を確認することができました。簡単ですね。</p>
+
+<h2>インスタンスを増やしてみる</h2>
+
+<p>今度はダッシュボードからインスタンスをひとつ増やしてみましょう。<code>giroppon</code>のアプリ詳細へ行き、以下のように<code>Instance</code>を2にして「保存」ボタンを押すだけです。</p>
+
+<p><a href="https://gyazo.com/a8250af9f87b151f191d0e715b576a8b"><img src="https://i.gyazo.com/a8250af9f87b151f191d0e715b576a8b.png" alt="https://gyazo.com/a8250af9f87b151f191d0e715b576a8b" /></a></p>
+
+<p>「保存」を押すとインスタンスが増えていることをアプリ詳細画面で確認できます。</p>
+
+<p><a href="https://gyazo.com/b496ab4a44593493169e2509c8f32567"><img src="https://i.gyazo.com/b496ab4a44593493169e2509c8f32567.png" alt="https://gyazo.com/b496ab4a44593493169e2509c8f32567" /></a></p>
+
+<p>インスタンスごとに別々のエンドポイントURLが発行されていることが分りますね。非常に楽なのがわかります。</p>
+
+<h2>Arukasの利点</h2>
+
+<p>一旦利点をまとめてみます。</p>
+
+<h3>ダッシュボードがシンプルで使いやすい</h3>
+
+<p>Tutumでも同じことを書きましたが、ダッシュボードのUIがシンプルにまとめられており、非常に使いやすいです。これはサービスが成功する上で必須の項目ですので、大変すばらしいことだと思います。</p>
+
+<h3>ノードについて気を回す必要がない</h3>
+
+<p>驚くべきことに、ArukasはDockerノードについて一切を考慮する必要がありません。
+いきなりDocker Imageを指定すればすぐに利用可能になりますし、「サーバレスアーキテクチャ」の一翼を担う存在と言えるかもしれません。</p>
+
+<h3>動作が速い</h3>
+
+<p>ダッシュボードを触ってみると、その動作の速度に驚かされるかと思います。
+僕の場合、実際にサービスをデプロイしてアクセス可能になるまでの時間が1分かからない程度でした。
+これは驚異に値する速度です。</p>
+
+<h2>Arukasの課題</h2>
+
+<p>これだけ簡単便利な国産コンテナプラットフォームなのですが、まだまだベータ期間ということもあって、課題がちらほらと見受けられます。</p>
+
+<h3>サービスエンドポイントURLが発行されない</h3>
+
+<p>インスタンスを増やしたときにコンテナごとにエンドポイントURLが発行されましたが、残念なことにサービスエンドポイントURLは発行されませんでした。
+このため、せっかく負荷対策でインスタンスを増やしても、自分でいちいち別にロードバランサーを用意し設定する必要が出てきてしまいます。</p>
+
+<h3>プライベートレジストリに対応していない</h3>
+
+<p>現状では<a href="https://hub.docker.com/">Docker Hub</a>で公開されているDocker Imageしか利用できません。
+従って、なんらかのクローズドなプロジェクトで利用するのは非常に困難となります。</p>
+
+<h3>足回りがロックインされてしまう</h3>
+
+<p>ノードについて気を回す必要がない、という利点の裏返しとなりますが、自分でIaaSベンダーやサーバの選定ができません。
+Docker Cloudの場合は各種IaaSやオンプレミスへの対応ができているので、この辺りはユースケース次第かと思います。</p>
+
+<p>もしサーバレスアーキテクチャに寄せるのであれば、Arukasのほうが向いているかもしれないですね。</p>
+
+<h3>CLIやAPIが存在しない</h3>
+
+<p>CLIやAPIが存在しないということは、自動化することが非常に困難であるということでもあります。</p>
+
+<p>APIだけでも出てくるとだいぶ利便性が高くなりそうですね。</p>
+
+<h3>ドキュメンテーションが貧弱</h3>
+
+<p>ダッシュボードについての記述があるのみです。
+まだまだ機能が少ないので現時点では問題にならないのですが、上述したような機能が追加されたときにドキュメンテーションもあわせて強化されることを期待したいところです。</p>
+
+<h2>まとめ</h2>
+
+<p>国産コンテナプラットフォームの<a href="http://arukas.io/">Arukas</a>を紹介しました。
+まだまだベータ期間ですので、機能面での見劣りが若干ありますが、サーバレスで使えて動作が大変高速、しかも簡単ですので、今後の動きに期待できそうです。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-02-13:entry-2016-02-13-21-55-23.html</id>
+<published>2016-02-13T22:49:53+09:00</published>
+<updated>2016-02-14T10:13:46+09:00</updated>
+</entry>
+<entry>
+<title type="text">「ギロッポンでシースー」なAPIをコンテナにしてみた</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2016-01-22-17-00-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>遅くなりましたが新年おめでとうございます。わいとんです。</p>
+
+<p>さて、書き初めってほどのものでもないんですが、タイトルのようなものをつくってみました。</p>
+
+<p><a href="http://shukugawa-atom.ytnobody.svc.tutum.io:7654/?text=%E6%81%B5%E6%AF%94%E5%AF%BF%E3%81%A7%E3%82%AB%E3%83%95%E3%82%A7">「恵比寿でカフェ」の例</a></p>
+
+<p>これは過去にlestrratさんが発表したAcme::ShukugawaAtomというCPANモジュールをAPI化し、dockerコンテナに放り込んだだけのものです。</p>
+
+<p><a href="https://hub.docker.com/r/ytnobody/shukugawa-atom/">ytnobody/shukugawa-atom on docker hub</a></p>
+
+<p>以上、非常に雑なネタでした。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2016-01-22:entry-2016-01-22-17-00-00.html</id>
+<published>2016-01-22T17:00:56+09:00</published>
+<updated>2016-01-22T17:00:56+09:00</updated>
+</entry>
+<entry>
+<title type="text">過去を振り替える時間</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-12-28-01-05-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>いわゆる個人的な今年の振り返りなどです。長いので斜め読みで結構かとおもいます。</p>
+
+<h2>大手IT企業に居たことで得たものなど</h2>
+
+<p>今年の初頭はまだ、前職の大手IT企業でサーバサイドのコード実装を行うプログラマをしていたわけですが、30ちょうどで入社してから4年目の冬、ふと数年先を想像して、自分はこのままで良いのだろうか？という疑問を持つようになりました。</p>
+
+<p>回りの仲間たちは本当にすごい方々ばかりで、技術力や知識量・センスなど、明らかに自分では真似のできないレベルのなにかを皆さんが持っていました。そういった方々の織り成すコードを見て、こういうやり方があるのか、と関心する機会に恵まれたことを、改めてありがたいことだったと感じております。現在僕は非常に生産効率の良い実装ノウハウを多数身につけることができ、実務レベルで活用することができております。</p>
+
+<h2>転機について</h2>
+
+<p>過去にも書きましたが、今年4月に上述の大手企業を退職し、乃木坂のIT企業に入社しました。お世辞にも大手企業とは言えない、小さい会社です。しかし、扱っているシステムは決して小さくないものですし、捌いているトラフィックも4から5Gbpsほどと、かなりの規模と言えるものです。</p>
+
+<p>僕は、大企業の「大企業っぽさ」が苦手でして、そこに身を置くことによって自分が弱ってしまった感覚があったのを覚えています。一時期、そんな自分を指して「牙を失った」とか「狩りをする爪がない」という表現でその軟弱さを自嘲していたことがありました。</p>
+
+<p>ある時、なんでそういう風に感じてしまうのだろうか、と温泉に浸かりながら考えていたとき、とある仮説をたてて考えてみたことがあります。</p>
+
+<p>「人間は、環境が求める以上の存在になることはできない。」</p>
+
+<p>そうすると、実は環境が僕の苦手なところを要求していただけであり、たまたま弱かった面が露呈しただけだった、ということではないのか？</p>
+
+<p>苦手な部分について頑張って克服することもできるだろう。でも、それはほどほどにしておかないと、人生はそんなに長くない。もっと自分の武器を売り込める環境を模索しなくては。</p>
+
+<h2>自分の武器を明らかにするために、過去をふりかえってみる</h2>
+
+<p>当時僕自信の過去を振り返った時に、大まかに以下のような武器を持っている、と認識していました（今思えばこれはやや盛りすぎな気がしてる）。</p>
+
+<ul>
+<li>webシステムの構築に関わるほぼ一切の技術 (サーバ・インフラ・JavaScript・セキュリティ・大規模メールシステムなど)</li>
+<li>microservices的な開発に関わってきた経験</li>
+<li>受注開発営業の経験</li>
+<li>webデザインの経験</li>
+<li>ソシャゲーのレベルデザイン経験</li>
+</ul>
+
+
+<p>当時はこれらの武器のうちの一部しか活用されてないな、という感覚があったのを覚えています。</p>
+
+<h2>自分が経験したことをやる道と、未経験のことをやる道と。</h2>
+
+<p>次のキャリアを選ぶときに、今までやってきたことをそのまま選んだのであれば、おそらくもう一度同じ結果が待っていることだったでしょう。一般的に大きい企業ほど、プログラマであればその人をプログラマという枠でしか扱わないはずです。能力の多面性を生かすことを考えたりはしないでしょう。</p>
+
+<p>であれば、最初から多面的な能力を要求されるポジションに就けば良い。例えそれが自分にとって未経験のポジションであっても、能力的には今までの経験を生かすことができるだろうし、それが期待されるはず、と考え、小さいIT企業に転職し、グロースハッカーというポジションをでっち上げることにしたのです。</p>
+
+<p>この辺の発想の転換には、僕が主催をやっているMachida.pmという集まり？の影響がものすごく大きいです。</p>
+
+<h2>グロースハッカー（笑）</h2>
+
+<p>当初こそサーバサイドエンジニアという肩書きでしたが、最終面接の時点から徹頭徹尾グロースハッカーであることを主張し続けましたし、考え方も行動もグロースハックの観点を軸に、ただし日本の世の中で言われているグロースハックとは違う、もっとエンジニア的なグロースハックを実現することに力を使うことにしていました。</p>
+
+<p>まず、社内の雰囲気を変えるところからやっていくことにしました。悪い噂に怯える仲間には「じゃあ僕が真相聞いてきます」と言って当事者に聞きにいったりしました。煮えきらない仲間には飲んだ勢いで「全力で協力しあっていこうぜ、背中は任せたぞ、その代わりお前の背中は任せてもらうぞ」みたいな感じで絡んだりもしました。とにかくメインの業務に集中してもらいたいという一心で、その他の消耗しそうな要素を徹底的になくしていくよう努めたつもりです。</p>
+
+<p>そして、マーケティング部門との連携を進めるべく、分析基盤の強化やモニタリング基盤の整備を行いました。また、インフラ部門の新設、エンジニア採用における人事部門との連携、エンドユーザからのフィードバックを直に受けるサポセンとの連携など、事業生産効率の向上を狙い、各部門とテクノロジー部門との繋がりを築くことができたと思っております。</p>
+
+<h2>気づけばマネージャに</h2>
+
+<p>あくまで僕が目指してきたのは「生産効率の向上」この一点に尽きます。肩書きなんてものは後でついてきたものなのでこの際なんでも良くて、仲間を信頼できる文化を社内に根付かせ、個人個人のマイナス面をチームで補い、生産能力を遺憾無く発揮できるチームを作っていきたい、というのが今の目標となっています。</p>
+
+<h2>こういうエントリを書くことは再確認作業でもある</h2>
+
+<p>この手のポエムを書くことが増えてきましたが、結局のところエントリを書くこと自体が振り返りと言えるんじゃないでしょうか。</p>
+
+<h2>来年は・・・</h2>
+
+<p>行動経済学に基づいたマーケットエンジニアリング、なんていうのは面白そうですよね、とか思っていたり。</p>
+
+<h2>その他</h2>
+
+<p>このエントリは査読とかしてないので、とくに雑です。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-12-28:entry-2015-12-28-01-05-00.html</id>
+<published>2015-12-28T01:08:06+09:00</published>
+<updated>2015-12-28T01:08:06+09:00</updated>
+</entry>
+<entry>
+<title type="text">Perl入学式を社内に持ってきた話</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-12-19-08-50-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>このエントリは<a href="http://qiita.com/advent-calendar/2015/perl-entrance">Perl入学式アドベントカレンダー</a>19日目のエントリです。</p>
+
+<p>18日目は<a href="https://twitter.com/umaaaaa_chan">@umaaaaa_chan</a>さんのエントリ<a href="http://umaaaaa-chan.hatenablog.com/entry/2015/12/18/002641">Perl入学式から広がったコミュニティ</a>でした。</p>
+
+<p>学生の方が<a href="http://www.perl-entrance.org/">Perl入学式</a>を通して<a href="http://kichijojipm.hatenablog.com/">Kichijoji.pm</a>へと行動範囲を広げ、来年にはPerlと関連したお仕事に就くということで、長らくPerlで食べてきた者としては感慨深いエントリでした。</p>
+
+<h2>Perl入学式を社内に持ってくる、とは？</h2>
+
+<p>わりとよく知られた話かもしれませんが、Perl入学式の公式サイトでは、<a href="http://www.perl-entrance.org/handout.html">往年のスライド</a>が<a href="https://creativecommons.org/licenses/by-nc-nd/2.1/jp/">クリエイティブ・コモンズ・ライセンス</a>に基づき無償で公開されております。</p>
+
+<p>基本的には営利目的以外であれば、出自を明らかにした上でそのまま利用することが可能、という状況です。</p>
+
+<p>社内より参加希望者を募り、必要に応じてサポーターが数名参加することで、スケジュール調整次第でいつでも開催可能、というわけです。</p>
+
+<p>ちょっと話がそれますが、僕は現在、エンジニア・プロデューサー・デザイナーなどといった、いわゆるシステム開発の「受注側」を担うメンバーを率いる統括マネージャーとでもいった立ち位置にいます。</p>
+
+<p>そんなわけで、社内で使うであろうシステム開発についての知見をできるだけメンバーに広く浸透させ、効率よく業務を遂行してもらう責任があります。</p>
+
+<p>社内研修もその一環であり、自分たちの利用している技術に関する実績ある研修手法が目の前にあって、しかも無償で利用可能となれば、利用しない手はないです。渡りに船というやつです。</p>
+
+<h2>実際開催してみた</h2>
+
+<p>そんな感じで11月の下旬に社内メンバー向けにやってみましたところ、いろいろと気がつく点がありました。</p>
+
+<p>各社の状況によって事情は異なると思いますが、ひとつの事例としてみていただけると良いかと思います。</p>
+
+<h3>予想以上に関心が高い人が多かった</h3>
+
+<p>告知をしてみたところ、エンジニアやプロデューサなど、ロールを超えて参加に前向きな方が多かったのが印象に残っています。</p>
+
+<p>やはり初学者向けということもあり、未経験の方としては「新たなスキルを習得したい」「プログラムがわかる視点でプロデューサー業務を見直したい」という気持ちがモチベーションになっているようでした。</p>
+
+<p>驚いたのが、熟練のエンジニアでも「今のPerlがどうなってるのか知っておきたい」「基礎からレクチャーを受ける機会がなかったので受けたい」「Perlは第4言語くらいなのでちゃんと習得したい」等のいう理由から、この初学者向けハンズオンに参加してくれたりして、これは新しい発見だと感じました。</p>
+
+<h3>社内研修で4時間とるのは難しい</h3>
+
+<p>実際のPerl入学式では（たとえば東京の場合は）開催時間が大体13:00～17:00となっており、4時間確保して懇切丁寧に解説したりするのですが、業務時間を縫って4時間をまるっと確保するのは難しいと感じました。</p>
+
+<p>ぼくらの場合、エンジニア暦7年以上の猛者が多いということもあったので、大幅に時間を短縮し2時間で第1回および第2回の70%くらいまでをこなしました。</p>
+
+<p>若手プロデューサの方など明らかにエンジニアリングの経験がない方もいて、最初本当に大丈夫かな？と不安視しましたが、参加者全員が各問題をスムーズに解いていくのを見て、「あ、この人エンジニアでもやっていけそうだな」とか「熟練者でも若干の表記のゆらぎがあるな」などと思ったりできるくらいには余裕がありました。</p>
+
+<h3>社内向けの補足解説が大事</h3>
+
+<p>基本的に入学式の資料はターゲットを広く取っていることもあって、よく言えば「どんな人にも一定以上の効果がある」となるのですが、一方で短い時間で把握してもらうには若干冗長になっているとも受け取れます（これは仕方ない事です）。</p>
+
+<p>ですので受け手にスムーズに汲み取ってもらえるよう、「いま説明した部分はうちのシステムのほげほげ機能で使われています」とか「管理画面の会員一覧を出すときにここでこうやって使います」のように、実際の利用事例やコードを挙げて説明することで、業務とリンクして理解してもらえるよう努めました。</p>
+
+<p>すると「あーなるほど、じゃあ一覧出してるところは全部こういう感じなんですね」みたいな反応があったりするので、理解してもらえてるかどうかの指標となり、結果的にスムーズな理解へとつながったんじゃないかな、と思っています。</p>
+
+<h2>まとめ</h2>
+
+<p>結果として、社内メンバーに対して相応の知見を持って帰ってもらうことができたんじゃないか、と思っています。</p>
+
+<p>僕自身それなりの回数をサポーターとしてやってきているので、内容やすすめ方など基本的な軸については理解している、というのも大きかったと言えるでしょう。</p>
+
+<p>しかし、それはPerl入学式というコミュニティから得られた知見ですし、仲間の力です。一緒に関わってこれたことを本当にありがたく思う次第です。</p>
+
+<p>特に<a href="https://twitter.com/__papix__">@<strong>papix</strong></a>さんには4年くらい（そろそろ5年になるのかな？）お世話になっておりますが、彼のおかげで僕もたくさんの知見を獲得することができています。ありがとう。これからもよろしく！</p>
+
+<h2>さぁーて、次回のエントリは～？</h2>
+
+<p>明日はついに20日目、<a href="https://twitter.com/nishiru3">にしるさん(@nishiru3)</a>の出番です！休日出勤お疲れ様！体調気をつけてエントリかいてくださいね！</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-12-19:entry-2015-12-19-08-50-00.html</id>
+<published>2015-12-19T08:49:27+09:00</published>
+<updated>2015-12-19T08:49:27+09:00</updated>
+</entry>
+<entry>
+<title type="text">二千万レコードあるテーブルへのalterをサービスを止めずに流す</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-12-05-18-50-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>※このエントリは<a href="http://qiita.com/advent-calendar/2015/mysql-casual">MySQL Casual Advent Calendar 2015</a>の5日目のエントリです。</p>
+
+<h2>openark-kit というものについて</h2>
+
+<p>ここまで読んでわかった方は、この先を読む必要はありません。</p>
+
+<p><a href="http://code.openark.org/forge/openark-kit">openark-kit</a>とは、mysqlの運用に便利なツールキットを14個あつめたソフトウェアパッケージです。</p>
+
+<p>Shlomi Noachという方がPythonで開発しており、少なくとも2009年に発表されているようです。
+2015-12-05時点での最新版は196.1となっており、.tar.gz および .deb で配布されております。</p>
+
+<h2>このエントリを書いた背景事情</h2>
+
+<p>そもそも僕自身、50を超えるクラスタ化されたmysqlノードと一緒に業務生活を送っております。
+ところが、システムが非常に古くさい構成のため、合計レコード数が2億から3億程度ある垂直分割されたテーブルに対しALTERを投げたりしなくてはいけなかったりします。
+あまり頻繁ではないのですが、それでも2ヶ月に1回はそういう作業をしているので、システムとしてはつらさのある構成であるとおもっていただいて結構です。実に小市民的だといえますね。</p>
+
+<h2>実際の使用例</h2>
+
+<p>今回はタイトルにあるように「ALTERを流す」ことをしたいと思います。</p>
+
+<p>まあとはいえ、私も実際のデータをブログに掲載するわけに行きませんので、2000万レコードのダミーデータを放り込んだテーブルを用意しました。</p>
+
+<pre><code>mysql&gt; desc member;
++-------+-----------------------+------+-----+---------+----------------+
+| Field | Type                  | Null | Key | Default | Extra          |
++-------+-----------------------+------+-----+---------+----------------+
+| id    | int(10) unsigned      | NO   | PRI | NULL    | auto_increment |
+| name  | varchar(32)           | NO   |     | NULL    |                |
+| sex   | enum('male','female') | NO   |     | NULL    |                |
+| pref  | int(11)               | NO   |     | NULL    |                |
+| memo  | text                  | YES  |     | NULL    |                |
++-------+-----------------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
+</code></pre>
+
+<p>おおむねこういう構成のテーブルです。牧歌的だとおもいます。私が普段触っているテーブルに比べ、いかにも簡単なものだとおもいます。</p>
+
+<pre><code>mysql&gt; select count(*) from member;
++----------+
+| count(*) |
++----------+
+| 20000000 |
++----------+
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>ちゃんと2000万レコードはありますね。</p>
+
+<pre><code>mysql&gt; show indexes in member;
++--------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table  | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++--------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| member |          0 | PRIMARY  |            1 | id          | A         |    20000403 |     NULL | NULL   |      | BTREE      |         |               |
++--------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>インデックスはIDのみ。あるあ・・・ねーよｗｗｗｗ</p>
+
+<p>さて、こんな状態のテーブルなので、基本的にはid以外での絞り込みは遅いです。たとえば</p>
+
+<pre><code>SELECT id, name FROM member WHERE pref=24 LIMIT 100;
+</code></pre>
+
+<p>見たいなqueryがバコスコ飛んできている状況を考えた場合、賢明な諸兄であれば 「とりあえずprefだけでもindexつくっておきたい」などと思うはず。しかし、ALTERはTABLEレベルでロックをかけるので、サービス提供中に実施するのはためらわれますよね。</p>
+
+<p>そこで <code>oak-online-alter-table</code> の登場です！</p>
+
+<p>使用例は以下のような感じ。</p>
+
+<pre><code># oak-online-alter-table \
+    --sleep=100 \
+    --user=oak \
+    --password=oakpass \
+    --database=dummy \
+    --table=member \
+    --socket=/var/run/mysqld/mysqld.sock \
+    --alter='ADD INDEX idx_member_pref(pref)'
+</code></pre>
+
+<p>簡単に説明していきます。</p>
+
+<p>sleepはmsec単位で指定できますが、これはレコードをコピーしたり削除したりするときに待機するインターバル時間です。
+あまり小さく設定しすぎると負荷がきつくなってしまいますし、大きくしすぎると今度は待ち時間が長くなってしまい、余分に待たされることになります。</p>
+
+<p>alterには、本当にalter構文でやりたかった内容を書けばよいです。</p>
+
+<p>そのほかはなんとなく見てればわかるんじゃないかな・・・（雑</p>
+
+<p>さて、これを実行すると以下のようにログが流れていきます。</p>
+
+<pre><code>-- Connecting to MySQL
+-- Table dummy.member is of engine innodb
+-- Checking for UNIQUE columns on dummy.member, by which to chunk
+-- Possible UNIQUE KEY column names in dummy.member:
+-- - id
+-- Table dummy.__oak_member has been created
+-- Table dummy.__oak_member has been altered
+-- Checking for UNIQUE columns on dummy.__oak_member, by which to chunk
+-- Possible UNIQUE KEY column names in dummy.__oak_member:
+-- - id
+-- Checking for UNIQUE columns on dummy.member, by which to chunk
+-- - Found following possible unique keys:
+-- - id (int)
+-- Chosen unique key is 'id'
+-- Shared columns: memo, pref, id, name, sex
+-- Created AD trigger
+-- Created AU trigger
+-- Created AI trigger
+-- Attempting to lock tables
+
+-- Tables locked WRITE
+-- id (min, max) values: ([1L], [20000000L])
+-- Tables unlocked
+-- - Reminder: altering dummy.member: ADD INDEX idx_member_pref(pref...
+-- Copying range (1), (1000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (1000), (2000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (2000), (3000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (3000), (4000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (4000), (5000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (5000), (6000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (6000), (7000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (7000), (8000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (8000), (9000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (9000), (10000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (10000), (11000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (11000), (12000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (12000), (13000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (13000), (14000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (14000), (15000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (15000), (16000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (16000), (17000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (17000), (18000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (18000), (19000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (19000), (20000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- - Reminder: altering dummy.member: ADD INDEX idx_member_pref(pref...
+-- Copying range (20000), (21000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (21000), (22000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (22000), (23000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (23000), (24000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (24000), (25000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (25000), (26000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (26000), (27000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (27000), (28000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (28000), (29000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (29000), (30000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (30000), (31000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (31000), (32000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (32000), (33000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (33000), (34000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (34000), (35000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (35000), (36000), progress: 0%
+-- + Will sleep for 0.1 seconds
+</code></pre>
+
+<p>注目すべきは progress: 0% のところ。これが100%になるとALTER完了です。</p>
+
+<pre><code>-- + Will sleep for 0.1 seconds
+-- Deleting range (19997000), (19998000), progress: 99%
+-- + Will sleep for 0.1 seconds
+-- Deleting range (19998000), (19999000), progress: 99%
+-- + Will sleep for 0.1 seconds
+-- Deleting range (19999000), (20000000), progress: 99%
+-- + Will sleep for 0.1 seconds
+-- Deleting range 100% complete. Number of rows: 0
+-- Table dummy.member has been renamed to dummy.__arc_member,
+-- and table dummy.__oak_member has been renamed to dummy.member
+-- Table dummy.__arc_member was found and dropped
+-- ALTER TABLE completed
+</code></pre>
+
+<p>・・・さて、僕の環境ではだいたい30分ほどかかりましたが、以下の通りINDEXの追加に成功しています。</p>
+
+<pre><code>mysql&gt; show indexes in member;
++--------+------------+-----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table  | Non_unique | Key_name        | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++--------+------------+-----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| member |          0 | PRIMARY         |            1 | id          | A         |    20000403 |     NULL | NULL   |      | BTREE      |         |               |
+| member |          1 | idx_member_pref |            1 | pref        | A         |          18 |     NULL | NULL   |      | BTREE      |         |               |
++--------+------------+-----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+2 rows in set (0.00 sec)
+</code></pre>
+
+<p>cardinalityが低いので、正直このインデックスはかなり効果薄いんですけどね！！！！！！１１１</p>
+
+<h2>どういう原理なの？</h2>
+
+<p>簡単に説明すると、まず既存テーブルと同じ構成のテーブルを作り、既存テーブルにいくつかのINSERT/UPDATE/DELETE時に実行されるトリガーをはやしておきます。
+こうすることで、既存テーブルへの変更をそのまま新しいテーブルに反映できる、というわけです。</p>
+
+<p>そして、既存テーブルから1000件ずつレコードをコピーしていき最後に整合性をとってから、既存テーブルと新テーブル名を入れ替えて、既存テーブルを削除して終了という流れになります。</p>
+
+<p>言葉で書くとわかりにくいのですが、<a href="http://d.hatena.ne.jp/sh2/20100703">こちらのブログエントリ</a>に大変わかりやすい解説が載っておりますので、そちらも参照してみてください。</p>
+
+<h2>やばいときには・・・</h2>
+
+<p>もし「あー！このALTERやったらあかんやつや！！！」って途中で気が付いても大丈夫。</p>
+
+<p>Ctrl-Cしてから、<code>--alter</code>オプションの変わりに<code>--cleanup</code>オプションをつけて実行すれば、なんと一時テーブルとトリガーを綺麗に無かったことにしてくれます。</p>
+
+<p>これでやらかす頻度が減るよ！やったねたえちゃん！</p>
+
+<h2>最後に</h2>
+
+<p>僕はoak-online-alter-tableをサービスで、しかも3億近くあるレコードを持つテーブル郡に実施したりしていますが、これまで全く異常にぶち当たったことがありません。</p>
+
+<p>非常に古く、たぶん若い方は名前も聞いたことすらないかもしれないですけど、枯れていて、実直なツールですので、ぜひ試してみてはいかがでしょうか？</p>
+
+<p>簡単に試したい向きには <a href="https://hub.docker.com/r/ytnobody/openark-kit/">docker image</a>もつくってありますので、「アタシんとこ、セントオーエス7なの・・・」という向きにも触ってもらいやすいかと思います。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-12-05:entry-2015-12-05-18-50-00.html</id>
+<published>2015-12-05T18:53:10+09:00</published>
+<updated>2015-12-05T18:56:44+09:00</updated>
+</entry>
+<entry>
+<title type="text">なぜなにTutum - いまTutumをオススメする12の理由</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-11-19-20-38-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>※このエントリは実は<a href="http://qiita.com/advent-calendar/2015/docker">Docker Advent Calendar 2015</a> の1日目のエントリだったんだよ！</p>
+
+<p>おはこんばんちわ！ytnobodyです。最近はすっかりDockerおじさんとなってしまいましたが、僕がdockerコンテナを管理するのに使っている<a href="http://www.tutum.co/">Tutum</a>について、改めて紹介しておきたいと思います。</p>
+
+<h2>DockerとTutumの関係性</h2>
+
+<p>Dockerが世に出回って結構な月日が経ちましたが、webアプリ開発者の観点から見た時に、コンテナのデプロイ及び管理を行う仕組みとして決定打といえるプロダクトはこれまでありませんでした。</p>
+
+<p>ところが数週間前、<a href="http://jp.techcrunch.com/2015/10/22/20151021docker-acquires-cloud-startup-tutum-for-container-shipping-and-management/">DockerがTutumを買収してコンテナアプリケーションの稼働管理サービスを充実  |  TechCrunch Japan</a> というニュースが報じられました。
+これはDocker自身が、従来のコンテナ管理/デプロイ手法について不足を感じており、それに対する適切なソリューションとしてTutumに目をつけた、ということだと思います。</p>
+
+<p>元々Tutumはこれまでもdocker composeの下地となる技術へのコミットや有用なイメージの公開などを通して、Dockerとは非常に密なつながりを持ち続けてきました。</p>
+
+<p>そしてつい先日、とうとう <a href="http://www.publickey1.jp/blog/15/docker_container_as_a_service.html">Dockerが「Container as a Service」展開へ。IaaSモデルやPaaSモデルはコンテナの展開にとって適切ではないと。DockerCon Europe 2015 － Publickey</a> というニュースで、Tutumのエンタープライズ向けとも言える「Docker Universal Control Plane」が明らかになりました。</p>
+
+<h2>そもそもTutumとは？</h2>
+
+<p><a href="http://www.tutum.co/">Tutum</a>について大まかに説明すると、「dockerコンテナを任意のIaaSやサーバにデプロイし、管理するサービス」となります。</p>
+
+<p>dockerコンテナの管理という目的であれば、他にもkubernetes(k8s)を使った方法や、fleetとetcdを組み合わせる方法などもあるようですが（興味のある方はそちらについても調べてみると良いかと思います）、僕は断然Tutumをオススメします。</p>
+
+<h2>理由その１：ダッシュボードがわかりやすくてカッコイイ</h2>
+
+<p>まず、このダッシュボードをみてください。</p>
+
+<p><img src="http://ytnobody.net/impress/tutum-dashboard.png" alt="tutum dashboard" /></p>
+
+<p>どう見てもかっこいいです。フラットデザインでクリーンな印象を与えてくれますね。そして一つ一つのボタンやタブについて必ずシンプルな説明とアイコンが記載されています。多少英語の知識が必要ですが、一目見ただけで何をするボタンなのかが直感的にわかりますね。</p>
+
+<p>また、Welcomeタブをクリックすると、初心者でもわかりやすいように、ステップバイステップでツアーが見れるようになっています。</p>
+
+<p><img src="http://ytnobody.net/impress/tutum-tour.png" alt="tutum welcome" /></p>
+
+<p>このように徹底したUXへのこだわりと利用を諦めさせない努力の結果として、初心者でも躓きにくいと僕は感じました。</p>
+
+<h2>理由その２：Private Registryがついてくる</h2>
+
+<p>dockerを使っていると、そのうち自分用のイメージを作るようになると思います。そのうちに、作ったイメージをどこからでもデプロイできるように大抵は「Docker Hub」で公開することになるわけですが、なんらかの理由で「公開できない」イメージが手元に出来上がった時、Private Registryを自前で運用することを考えることでしょう。</p>
+
+<p>ところがPrivate Registryの運用は思いのほか手間がかかり、dockerコンテナでのデータ永続性の確保が比較的煩雑であることから、早々に諦めてしまう人もいるのではないでしょうか。</p>
+
+<p>そんな人にもTutumはオススメです。なぜなら、自分で構築・運用しなくてもよい、<a href="https://support.tutum.co/support/solutions/articles/5000012183-using-tutum-s-private-docker-image-registry">フルマネージドなPrivate Registry</a>がついてくるのです。こんな楽なことは自前ではまずありえないですよ。</p>
+
+<h2>理由その３：dockerに関わるコマンドを覚えなくてもとりあえず使える</h2>
+
+<p>基本的にWebダッシュボードだけで全ての操作が可能ですので、コマンドの類を覚える必要がありません。</p>
+
+<p>強いて挙げるならば、自分でイメージを作るためにDockerfileの文法とdocker buildの使い方くらいは覚えないといけないですけど、おそらくこれらもそのうちエコシステムができるんじゃないかと思います（勝手な予想）。</p>
+
+<h2>理由その４：フルマネージドである</h2>
+
+<p>k8sやfleet+etcdはサーバにインストールして利用するツールですので、自分で面倒を見る必要がありますし、何か問題が発生したら自分で解決する必要があります。</p>
+
+<p>しかしtutumはフルマネージドなサービスですので、問題が出た時にはtutumのエンジニアチームが対応に当たりますし、ユーザ側の設定などに問題がある場合は適切なアドバイスを受けることができます。</p>
+
+<h2>理由その５：簡易的なモニタリングが可能</h2>
+
+<p><img src="http://ytnobody.net/impress/tutum-monitoring.png" alt="tutum monitoring" /></p>
+
+<p>webダッシュボードに、このような簡易的なモニタリングツールがついてきます。</p>
+
+<p>コンテナのパフォーマンスを知りたい時に、ちょっとした目安にできて便利です。</p>
+
+<h2>理由その６：SSHとサヨナラできる</h2>
+
+<p><img src="http://ytnobody.net/impress/tutum-terminal.png" alt="tutum terminal" /></p>
+
+<p>webダッシュボードに、このようなターミナル機能がついています。</p>
+
+<p>このおかげで、コンテナにsshdを同梱する必要は無くなりました。</p>
+
+<h2>理由その７：ロードバランシング機能がある</h2>
+
+<p>サービスにアクセスするためのTCPポートを固定にしてから複数のノードへコンテナをデプロイすると、サービスに「entrypoint url」というものが付与されます。</p>
+
+<p>これは各コンテナにリクエストをロードバランシングしてくれるURLでして、コンテナの数を動的に増減させても滞りなくリクエストを捌いてくれます。</p>
+
+<p>また、サービスに属するコンテナを複数のIaaSやオンプレを跨いでデプロイしてあった場合にも当然対応してくれます。</p>
+
+<h2>理由その８：Tutum Stackで簡単に構成管理ができる</h2>
+
+<p>Tutum Stackというのはいわばdocker composeと同等の機能なのですが、それをwebダッシュボードから利用できます。</p>
+
+<p>従って、コンテナの構成管理はyamlファイルたった一つだけで完結します。</p>
+
+<h2>理由その９：IaaS/オンプレ両方で利用できて足回りを選ばない</h2>
+
+<p>「Bring Your Own Node(通称BYON)」という機能を活用することによって、IaaSだけではなく、オンプレでも利用可能です。</p>
+
+<p>仕組みとしてはいたって簡単で、webダッシュボードから払い出されたワンライナーを対象サーバで実行すると、goで書かれたtutum-agentがインストールされ、webダッシュボードから管理ができるようになるというものです。</p>
+
+<p>この機能のおかげで、例えばさくらのVPSやノートPC(ただしx86_64アーキテクチャCPUの物に限る)などをDocker Hostとして利用することができますし、オンプレしか利用できないシーンでもクラウドの手法でコンテナの管理が可能となります。</p>
+
+<h2>理由その１０：APIとツールキットがある</h2>
+
+<p>Tutumには<a href="https://docs.tutum.co/v2/api/">API</a>および<a href="https://support.tutum.co/support/solutions/articles/5000049209-installing-the-command-line-interface-tool">コマンドラインツール</a>がありまして、webダッシュボードで可能なことは一通りCLIでもこなせる、という状況です。</p>
+
+<p>これによってプログラマブルなコンテナの管理が可能となっております。その気になればAWSのようにオートスケーリングも可能でしょう。</p>
+
+<h2>理由その１１：コミュニティが活発でTutumのコアメンバーがやたらフランク</h2>
+
+<p>Tutumにサインアップすると、slackチームへの参加が可能となります。</p>
+
+<p>基本的に英語でのコミュニケーションとなるのですが、Tutumの開発メンバーをはじめCEOのボルハ・ブルゴス(Borja Burgos)やCTOのフェルナンド・メイヨー・フェルナンデス(Fernando Mayo Fernández)、そして各国の熱心なTutumユーザたちが集っており、特にコアメンバーは紳士的かつフランクで質問などにもフランクに答えてくれます。</p>
+
+<h2>理由その１２：しっかりとしたサポートとナレッジベース</h2>
+
+<p>オンラインでのサポートが驚くほどしっかりしています。<a href="https://support.tutum.co/support/home">サポートホーム</a>には、よくある質問や今話題のトピックなどがずらりと並んでいます。ここに並んでいない質問がある場合は「新規トピックを作成」することでサポートを受けることができます。</p>
+
+<p>そしてサポート実績の蓄積からできている<a href="https://support.tutum.co/support/solutions">ナレッジベース</a>は内容が濃く検索性も高いので、これから本気で使い始める人にもオススメできます。</p>
+
+<h2>まとめ</h2>
+
+<p>Tutumは簡単便利で応用が利く、とてもクールなサービスでオススメです！</p>
+
+<h2>お知らせ</h2>
+
+<p>そんなTutumについてもっとDeepにカジュアルに語り合おう、という集まり「<a href="http://www.zusaar.com/event/6367004">Tutum Night Tokyo</a>」を、来る12/15(火) 19:30 に開催することになりました！</p>
+
+<p><a href="http://www.zusaar.com/event/6367004">こちらのzusaar</a>から参加登録できますので、皆様のご参加をお待ちしております！</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-11-19:entry-2015-11-19-20-38-00.html</id>
+<published>2015-11-19T20:38:55+09:00</published>
+<updated>2015-12-01T20:47:38+09:00</updated>
+</entry>
+<entry>
+<title type="text">Ukigumo入りのDocker Imageが欲しかったので作りました</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-10-22-20-05-32.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<ul>
+<li><a href="https://hub.docker.com/r/ytnobody/ukigumo-ci/">https://hub.docker.com/r/ytnobody/ukigumo-ci/</a></li>
+<li><a href="https://github.com/ytnobody/docker-ukigumo-ci">https://github.com/ytnobody/docker-ukigumo-ci</a></li>
+</ul>
+
+
+<p>タイトルの通りです。立ち上げ方は以下の通り。</p>
+
+<pre><code>$ sudo docker run -it -p 2828:2828 -p 2829:2829 -v /opt/ukigumo:/opt/ukigumo ytnobody/ukigumo-ci
+</code></pre>
+
+<p>こんな感じで立ち上げてやると、 <a href="http://moznion.hatenadiary.com/entry/2014/05/02/181147">ここでmoznionさんが書いているような使い方</a>ができるようになります。</p>
+
+<p>ちなみに、<code>.ukigumo.yml</code>で</p>
+
+<pre><code>before_install:
+    - "plenv local 5.18"
+</code></pre>
+
+<p>みたいにすると、テストで使うPerlのバージョンを切り替えることができます。現時点で対応しているバージョンは以下の通り。</p>
+
+<ul>
+<li>5.20 (perl-5.20.3)</li>
+<li>5.18 (perl-5.18.4)</li>
+<li>5.16 (perl-5.16.3)</li>
+<li>5.14 (perl-5.14.4)</li>
+<li>5.12 (perl-5.12.5)</li>
+<li>5.10 (perl-5.10.1)</li>
+</ul>
+
+
+<p>ただし、イメージのサイズは1.6GBくらいあるので、<code>docker pull</code>の際には考慮する必要があります。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-10-22:entry-2015-10-22-20-05-32.html</id>
+<published>2015-10-22T20:12:39+09:00</published>
+<updated>2015-10-22T20:20:25+09:00</updated>
+</entry>
+<entry>
+<title type="text">改めてマネジメントする側になってわかったこと</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-10-15-20-45-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>さて、新天地に飛び込んでから早くも５ヶ月が経過したわけですが、いろいろあって現在はプレイングマネージャ的なロールを任されております。</p>
+
+<p>過去にもマネージャ的なロールをこなしていた時期があるのですが、当時よりも規模も経営に対するインパクトも大きいため、考え方というか視点をガラリと変える必要がありました。そんな中よく思うことを３つほど書いていこうかと思います。</p>
+
+<h2>まともなやつはケンカ嫌い</h2>
+
+<p>過去にも似たようなコンテキストの話を書いたことがありますけど、もはや近頃は以下の三段論法が適用できるんではなかろうか、とすら思いつつあります。</p>
+
+<ul>
+<li>金持ちケンカせず</li>
+<li>まともなやつはケンカ嫌い</li>
+<li>金持ちはまともなやつ</li>
+<li>（ただし、まともなやつだからといって金持ちかどうかはわかりません。）</li>
+</ul>
+
+
+<p>大事なことは、ここでいう「まともなやつ」も「金持ち」も基本的に心の余裕があるということです。心の余裕があるもんだから、基本的にケンカに興味ないし、くだらない、と思っている。この手の人間は、ケンカみたいな下世話なものではなく、もっと自分の興味のある分野に時間なりお金を投資するわけです。好戦的な人間は真逆ですね。さて、どちらが自分にとって良い影響を与えてくれるでしょうか。</p>
+
+<h2>目的意識のない人間は、目的へ誘導すれば良い</h2>
+
+<p>そもそも目的を持つ、ということは、何かの物事に対して比較的高い解像度を持って継続的に観察できる状態でないと難しいとおもうんです。観察解像度の低い状態で目的設定を行うのは、本能の赴くまま行動するのとなんら変わらない。</p>
+
+<p>マッチョな意見としては「もっと解像度をあげろ」「研鑚が足りないから目標設定できないんだろ」「甘え」など、手厳しい意見が並ぶことでしょう。もちろんそれもよくわかるんですけど、そもそも解像度の上げ方がわからない人間にとってはただの暴言にしかなりません。ここは一つグッと堪え、解像度の高い視点から目標を設定し、その目標へと一直線に向かうよう誘導してあげるのです。こうすることにより、目的がなくてそのまま腐っていく若者を減らすことができます。</p>
+
+<h2>誰もが100%の能力なんて発揮できない</h2>
+
+<p>これが一番大事なんですが、各々腹の中では「これをこうすれば、俺はもっと実力を発揮できるはずだ」って思っているところがあるでしょう。でもそれ、たらればの話ですよね。夢でしかない。無論、改善するまでの目標を設定して対応すれば「夢」ではなく「目標」になるんですけど。</p>
+
+<p>そもそもみなさんが毎日本当に100%の能力を発揮してたら、おそらく１週間以内にほとんどの人間は死ぬでしょう。仕事に死ぬなんて、阿呆らしすぎます。</p>
+
+<p>仕事をするからには、それなりのリスクとリターンがあります。ここでは単純にリスクを「自分の人的リソース」リターンを「おちんぎん」としておきますね。基本的には「自分の人的リソース」を犠牲に「おちんぎん」を得る行為が「労働」です。毎日100%の人的リソースを自由に使えますが、このうち何％を仕事に割り当てるか。これが大事です。</p>
+
+<p>当然、仕事に割り当てる人的リソースは少ない方が効率が良いですが、あまりリソースをケチると当然おちんぎんも減ってしまいかねないので、そこの線引きを雇用先としっかり対話して、具体的に取り決めるべきです。</p>
+
+<pre><code>X: 「君は毎週５日出勤し、９時間働きなさい。年俸は４００万ね。」
+
+Y: 「それは無理ですね。年俸は３００万でよいので、毎週４日出勤で６時間労働にしてください。その代わり、結果は必ず残します。」
+</code></pre>
+
+<p>このくらい言えるようになるといいですね。あ、もちろん裏打ちされた能力がないといけませんけどね。</p>
+
+<p>結局のところ、自分の思ってる能力の30〜40%くらいが自分の全力なんです。時折それを超えてもいいですけど、「偶に」で済ませておきたいものです。</p>
+
+<h2>まとめ</h2>
+
+<p>何が言いたいのかわからなくなっちゃいましたけど、要するにマネジメントしてわかったことは「もし部下に無茶させたらマネージャは無能」ということです。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-10-19:entry-2015-10-15-20-45-00.html</id>
+<published>2015-10-19T20:45:50+09:00</published>
+<updated>2015-10-19T20:47:54+09:00</updated>
+</entry>
+<entry>
+<title type="text">YAPC::Asia 2015 TokyoでLarry WallやCarlos Limaとコミュニケーションしてきた</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-08-23-21-15-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>一般参加してきました。去年は身内の都合があって１日目しか参加できなかったんですけど、今年は前夜祭からクロージングまでフルでの参加です。</p>
+
+<p>例年の通り今年もトークを応募したのですが、競争率の高さもあって、僕のトークは採択されませんでした。レポーター業も今年は引き受けてなくて割りと暇でして、なんか悔しかったので、「ゲリラ開催マチピーFM」というUstream配信を一人でやっていたりしました。このゲリピーFMについては後ほど。</p>
+
+<h2>今年のトークについて</h2>
+
+<p>海外勢のトークを中心に聞いていました。僕はPerlに関するトークを聞きたかったのですが、かなりの割合でPerl関連の発表は英語での発表に集まっていた気がします。結果的に海外勢のトークに重きがおかれることに。
+なかでもRicardo Signes (rjbs)氏のPerl5.22に関する発表が大変に興味深いものだと感じました。言語システムのメンテナが、いかに言語インターフェースをシンプルにしようと苦心しているのか、後方互換性と新しいフィーチャーをどうやって協調させるのか、という点について、フランクな口調で語っていました。
+それから、Ben Lavender (bhuga)氏のGithubにおけるリファクタリングについての発表は本当に参考になりました。リファクタリングとバグ修正を同時に行ってはいけないという話と、新機能の追加をするときに「自信をもって」取り組めないようであれば、リファクタリングしたほうがいいという話は、大変に思うところがあるものでした。</p>
+
+<h2>遠く離れた地に住む仲間たちとの交流</h2>
+
+<p>YAPCは世界各地からPerlに興味のある人々が集まるイベントです。古巣の仲間や地方のPerl Monger、学生などとも交流できるのが良いですね。ちなみに僕、古巣の人にはまだUnityの人って認識されていたようですが、紆余曲折を経て、いまはマネージャーです。マネジメントについて熱く語れる仲間がほしいと最近思っているところです。</p>
+
+<p>そして、YAPC::Gotandaと題した？最終日の懇親会では、各地のユカイなPerl Monger/PHPerと交流することができました。次のFukuoka.pm、忘れずに行くからな！！！！</p>
+
+<h2>ゲリピーFMというものをやったので打ち明けよう</h2>
+
+<p>さて、実は知らない人も多いかと思うのですが、僕はMachida.pmというものを主催しています。で、もうたぶん10回以上やっているんですけど、町田で開催したことは1回しかありません。僕も町田市民じゃなくて、おとなりの相模原市に住んでいます。そんな雑なPMなものですから、いっそ参加人数を増やすためにUst配信したらどうか、というので始まったのがマチピーFMです。僕はこの事を「町田は概念。クラウド化したのだ」と表現します。
+今回トークも落選してしまい、なんか悔しいし、いっそ「今日YAPCだったんですか。奇遇ですね、Machida.pmも今日ここで開催しているんですよ」って言ってやろうと思い、ゲリラ開催した次第です。</p>
+
+<p>でも当日、山の神に怒られるんじゃないか、と僕のチキンハートが囁いたものでしたので、yapcasiaタグは付けずにtwitterへ放流。数名の好事家に支えられ、２日間にわたり、それぞれだいたい２時間ずつ、雑なustream放送を行いました。</p>
+
+<iframe width="480" height="302" src="https://www.ustream.tv/embed/recorded/71312209?v=3&wmode=direct" scrolling="no" frameborder="0" style="border: 0px none transparent;"></iframe>
+
+
+<p><br /><a href="http://www.ustream.tv/everywhere?utm_campaign=Embed+Ustream+Promotion&utm_source=Web&utm_medium=Embed&utm_term=Ustream+Everywhere&utm_utm_content=Live+video+for+mobile+from+Ustream" style="padding: 2px 0px 4px; width: 400px; background: #ffffff; display: block; color: #000000; font-weight: normal; font-size: 10px; text-decoration: underline; text-align: center;" target="_blank">Live video for mobile from Ustream</a></p>
+
+<p>一日目。最初はちょっと緊張していたせいで見知った人間と話をしていた。７０分辺りでLarry Wallが登場。そのあとはCarlos LimaとAcme大全についてあーだこーだしてる。</p>
+
+<iframe width="480" height="302" src="https://www.ustream.tv/embed/recorded/71395397?v=3&wmode=direct" scrolling="no" frameborder="0" style="border: 0px none transparent;"></iframe>
+
+
+<p><br /><a href="http://www.ustream.tv/everywhere?utm_campaign=Embed+Ustream+Promotion&utm_source=Web&utm_medium=Embed&utm_term=Ustream+Everywhere&utm_utm_content=Live+video+for+mobile+from+Ustream" style="padding: 2px 0px 4px; width: 400px; background: #ffffff; display: block; color: #000000; font-weight: normal; font-size: 10px; text-decoration: underline; text-align: center;" target="_blank">Live video for mobile from Ustream</a></p>
+
+<p>二日目。はっちゃけていろんな人に話しかけることに。途中からまかまかさん製作のトレーニングカードゲーム「Parumon」のプレイの様子を垂れ流してみたり。</p>
+
+<p>肖像権の問題があるので、基本的には足元しか写していないのですが、音声だけでもそれなりにお楽しみいただけるんじゃないかと思います。Nexus7で収録しているので、音質よくないですけど。</p>
+
+<p>僕はこういう雑なPMがあったっていいと思います。地方のPMがうまく育たない、みたいな話も時おり耳にしますが、それを打開する方法のひとつとして、この雑なPMが参考になると幸いです。</p>
+
+<p>そして、たくさんの方に唐突にお話をうかがったりしたのですが、皆さんわりとまともにコミュニケーションとってくださるので、大変ありがたかったです。感謝しております。ちなみに視聴数はいうほど伸びておりませんので、雑に視聴してくださると幸いです。</p>
+
+<h2>最後に</h2>
+
+<p>builderscon（略してビーコン）が再来年にやるかもしれないけど、Perlにスポットを当てた大型カンファレンスはもう無いんだろうな、と考えると、ちょっとだけ寂しいですね。ま、僕には雑なMachida.pmがあるし、人と会うチャンスは作れるだろう、とか考えてますけどね。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-08-23:entry-2015-08-23-21-15-00.html</id>
+<published>2015-08-23T21:15:52+09:00</published>
+<updated>2015-08-23T21:15:52+09:00</updated>
+</entry>
+<entry>
+<title type="text">エンジニアを育成するということ</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-07-26-16-03-18.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>この数カ月間、技術的なアウトプットがあまりなくてソワソワしているytnobodyです。</p>
+
+<p>近頃はマネージャー的なポジションとして、日々汗だくになりながら色々試行錯誤を繰り返しているのですが、今回は「エンジニア不足」という事象にフォーカスしてポエムを書いてみますね。</p>
+
+<p>なお、色々と思うことがあって書いていて、しかも思ったことをそのまま書きだしたエントリなので、いつも以上に「散文的」かもしれないです。</p>
+
+<p>※このエントリは「完全」にytnobodyの「個人的見解」です。・・・まぁ個人ブログなんて、どのエントリもそういうモンだと思いますが。</p>
+
+<h2>「エンジニアが足りない」とは</h2>
+
+<p>人々はよく「エンジニアが足りない」と口々に言います。先日のエントリで僕もそういうことを書いておりました。</p>
+
+<p>しかし、「誰が発言しているのか」によって、この言葉の意味は大きく変わるもんだなあ、と最近思うわけです。</p>
+
+<p>そんなわけで、僕の「経験則」に基づいて、この言葉の真意を紐解いてみようと思います。</p>
+
+<p>ちなみに「エンジニア」を「デザイナー」に変えても、だいたい同じようなことが言えるんじゃないですかね。</p>
+
+<h2>企画サイドの人が言うと・・・</h2>
+
+<p>僕は企画をする人ではない（一枚噛むことはあるけど・・・）ので完全に予測でしかないのですが、「仕事を振る相手がいなくて困る」というコンテキストで「エンジニアが足りない」というケースが多いように感じます。</p>
+
+<p>要するに、彼らが求めているのは「仕事を振って、ソツなくこなしてくれるソルジャー」ということになるんではないかと。</p>
+
+<p>ただし人によっては、「どんな無茶な」という接頭辞がつくケースも時折あるようですね。</p>
+
+<h2>エンジニアが言うと・・・</h2>
+
+<p>これは一見わかりやすいようですが、かなり多岐にわたったコンテキストを含んでいることが多いです。掻い摘んでいくつか挙げると、</p>
+
+<ol>
+<li><p>自分のタスクを肩代わりしてくれる仲間（あるいは部下）がほしい</p></li>
+<li><p>一緒に成長できる仲間が欲しい</p></li>
+<li><p>似たような立場の人間に精神的な支えになって欲しい</p></li>
+</ol>
+
+
+<p>などがあるかと思います。とにかく一言でまとめると、「いまよりもエンジニアが増えると、もっと楽ができる」ということではないでしょうか。</p>
+
+<h2>マネージャーが言うと・・・</h2>
+
+<p>さて、今の僕のようなポジションの人間がここに当てはまるわけですが、概ね企画の人とエンジニアの人の中間のような考え方をしているわけです（僕だけかもしれませんが）。</p>
+
+<p>そんなもんで、だいたい「仕事をソツ無くこなすレベルの、これから成長が見込めるエンジニア」が欲しいって思うことが多いですね。</p>
+
+<p>ちなみに、いわゆる「スーパーエンジニア」が来てくれるなら嬉しいのですが、そういった方には相応の報酬をお支払いする必要があるでしょうし、見合った活躍の場をセッティングしないと、「やる気がでない」「僕の仕事ではない」なんてことになったりするので、別の意味の難しさがあると思っています。</p>
+
+<h2>経営層の人が言うと・・・</h2>
+
+<p>で、僕ですね。最近ココらへんが見えてきた気がするんです。</p>
+
+<p>経営層の人は「コスト」「売上」について、非常にシビアな視点を持ち合わせています。なもんで、基本的にはエンジニアに対しても「スキル」より「どれだけ稼ぐか」を求める傾向にあるなぁ、と。</p>
+
+<p>彼らがいう「エンジニアが足りない」はおそらく「<em>給料以上に稼いでくれる</em>エンジニアが足りない」だと思うんです。そりゃまあそうですよね。エンジニアも雇われれば「社員」ですし。</p>
+
+<h2>それぞれの主張に齟齬がないか</h2>
+
+<p>各位、それぞれの立場から、以下のような主張をしているっぽい、ということでした。</p>
+
+<p>企画：「仕事を振って、ソツ無くこなしてくれるエンジニアが欲しい」</p>
+
+<p>エンジニア：「エンジニアを増やしてくれ！そうすればもっと楽ができる！」</p>
+
+<p>マネージャー：「これからの成長が期待できて、今ある仕事をこなせるエンジニアが欲しい」</p>
+
+<p>経営層：「給料以上に稼ぐエンジニアが欲しい」</p>
+
+<p>これを見るに、確かにどの立場の人も「エンジニア欲しい」って思っているようです。ただし、それぞれ思惑が異なるので、このまま新しくエンジニアがjoinしたところで、これはなかなかうまく行かない結果になるんじゃないでしょうか。</p>
+
+<p>意外なことに、企画とマネージャー、マネージャーとエンジニアは、そこまで意見に相違がなさそうでした。</p>
+
+<p>しかし、経営層とエンジニア、経営層と企画は、「コスト」というキーワードを念頭において見てみると、かなり真っ向から相反している意見です。</p>
+
+<p>そして、「スーパーエンジニアには相応の報酬を」ということを書いているように、マネージャーも「コスト」については割と頭を悩ませているわけです。その点において、経営層とマネージャーは考え方が似ているかもしれません。</p>
+
+<h2>「今いる人材」こそが鍵を握っている</h2>
+
+<p>さて、一旦話は変わって、「使えないレッテルを貼られた社員」という人が世の中には一定数います（いないとは言わせないですよ？ｗ）。僕はこのレッテルについて、「様々な不幸なミスマッチ」によって出来上がってしまったものだと考えています。よくあるものとしては、</p>
+
+<ol>
+<li><p>スキルのミスマッチ</p></li>
+<li><p>興味のミスマッチ</p></li>
+<li><p>メンタルのミスマッチ</p></li>
+<li><p>報酬のミスマッチ</p></li>
+</ol>
+
+
+<p>あたりがあるかと思います。</p>
+
+<p>・・・ここで昔話を一つ。</p>
+
+<p>僕がまだ20代前半の頃、間違いなくこのレッテルを貼られていました。スキルとメンタルがミスマッチだったのです。毎日のように上司から嫌味を言われ、自分のスキルの無さと頭でっかちなプライドを呪っていた頃がありました。</p>
+
+<p>しかし、師匠と呼べる人がその会社にjoinし、社長や上司の協力を得ながら、Linuxの基礎、サーバ構築、ネットワークの基礎、Perlの基礎・応用、CPANの活用方法、UltraMonleyを使ったクラスタリングの構築方法などなど、仕事を通じて様々なスキルを伝授してもらいました（Tcl/TkやexpectやForthみたいな暗黒技術もこの頃に伝授してもらった）。</p>
+
+<p>4年経過したころ、とうとうサーバラック2つの管理をこなすまでになり、Perlプログラマとしても「一応」コードを書くことができるレベルになりました（4年も使ってその程度か、というのもありますがｗ）。</p>
+
+<p>その後何年か経過して、今やPerl界隈なら知らない人はいないほどの大御所エンジニア（当時の僕は知らなかった）と偶然一緒に仕事をすることになり、「テストを書け」と叱責され、テストの重要性を知ったりしたわけですが、結果的にこれがPerlに深く関わるきっかけとなり、後にYAPC::Asiaに参加することになるわけです。</p>
+
+<p>・・・とまあ、昔話はこのへんにしておきますね。</p>
+
+<h2>「エンジニア欲しい」なら、社内のノンスキルな若者を教育してみるのもひとつの手</h2>
+
+<p>何が言いたいかというと、</p>
+
+<p>　「『使えない』レッテルは、どこかに教育コストを滞納した人間がいる証拠」</p>
+
+<p>だということです。教育しなければ、使えるようになどなるわけがないです。</p>
+
+<p>よく「教育コストは馬鹿にならない」と言われますが、教育コストと人材採用コストを天秤に掛けてみるといいと思います。アドホックに人材採用コストを支払い続けることと、社員ひとりひとりの離職率を下げ教育コストを支払うことのどちらが将来的にお得なのか。</p>
+
+<p>もし、「人材採用コストを支払い続けたほうが、教育なんかするよりも明らかにお得だろ！」という方がいるなら、少なくとも国内のIT企業が「邪悪」であることの証左だと思います。社員の離職率が高いということには、相応の理由がありますからね。</p>
+
+<p>社内で悶々としている若者をエンジニアとして育成することは、長い目で見た場合、コスト効率も比較的良いはずです。</p>
+
+<h2>「離職率低下」と「若手の育成」が両輪となって初めて「強いエンジニアチーム」が動く</h2>
+
+<p>あと離職率が高いなら、これはかなり問題で、いくらエンジニアを育成しても外に流れ出てしまいます。なおマネージャークラスの頑張りによっては、離職率の低下を一時的に担うことはできますが、これは短期的かつ限定的です。</p>
+
+<p>本当に離職率を低く抑えたいなら、上述のミスマッチに応じたケアが必要です。つまり、</p>
+
+<ol>
+<li><p>スキル向上のための施策</p></li>
+<li><p>興味（モチベーション）を向上するための施策</p></li>
+<li><p>メンタル面のケア</p></li>
+<li><p>評価方法と報酬帯の明確化</p></li>
+</ol>
+
+
+<p>が絶対に不可欠です。どれか一つでも欠けてしまうと、風呂の栓を抜いたかのように人材流出が起こります。それぞれ経営層およびマネージャーが主に行う内容ではありますが、末端の社員としてもこれらの実現を経営層・マネージャーに働きかけることはできるはずです。</p>
+
+<h2>まとめ</h2>
+
+<ol>
+<li><p>「エンジニア欲しい」という発言は、その人の立場によって意味がかなり異なる。</p></li>
+<li><p>エンジニアも人材なので「コスト」を無視できない。</p></li>
+<li><p>今いる人材を有効活用するために「エンジニアとして育てる」。</p></li>
+<li><p>「離職率低下」と「若手の育成」が両輪となり「強いエンジニアチーム」が動く</p></li>
+</ol>
+
+
+<p>・・・まとまってないかも＾＾；</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-07-26:entry-2015-07-26-16-03-18.html</id>
+<published>2015-07-26T18:02:16+09:00</published>
+<updated>2015-07-26T18:02:16+09:00</updated>
+</entry>
+<entry>
+<title type="text">有限会社コロンにJoinしました</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-05-17-09-55-02.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>5/11からエンジニアリーダーという立場でお仕事をしております。しかし、さすがに33日間の休みは長かったです。</p>
+
+<h2>どんな会社？</h2>
+
+<p>ざっくりいうと、10年以上続いているコミュニティサイトの企画・開発・運用がメインの業務という感じです。社員数は３０人未満（まだちゃんと把握していない）、社員として働くエンジニアは５人程度と、少人数で頑張っている会社ですね。</p>
+
+<p>動いているシステムも、Perlで構築されたシステムがほとんどです。Perlエンジニアにとっては、かなり見知った物が多い印象です。</p>
+
+<h2>なんでこの会社を選んだのか</h2>
+
+<p>前回のエントリで書いたことですが、プログラミングだけの人材にはなりたくない、というのが根底にありまして、できるだけお客さんや企画の方と近い立ち位で、会社およびサービスの成長戦略を立案・実現するエンジニアでありたい、という希望がありました。</p>
+
+<p>分業のすすんだ大手さんではなかなかそのようなロールはないので、最初から社員数の少ない会社を狙いました。そして、技術面のボトルネックをなくしていくような働きと、お客さんからの要望をシンプルな実装に落とし込む働きをすることで、成長を加速させる役回りを引き受けよう、と考えて転職活動を進めたのです。結果的に、今回のようなキャリア・オポチュニティに出会うことができました。</p>
+
+<p>そして何より、社長との面談で、徹底的にお客様側に立ったビジネス観、サービス成長戦略等について、非常に共感を持てる部分が多かったのが決定打でした。社長はディレクター出身とのことで、エンジニアリングに明るい訳ではないのですが、それは僕のようなエンジニアが不安を払拭すればよいのであり、障壁となる技術課題を取り除く役割が求められているんだな、と認識できたわけです。グロースハックのマインドは必要とされていました！</p>
+
+<h2>実際に一週間働いてみて</h2>
+
+<p>技術面での課題は山ほどあります。恐らくこれらの課題を現行の体制で消化していくには正直しんどいものがあり、まだまだエンジニアが必要だな、と感じているところです。</p>
+
+<p>そんなわけで、Unityを触れるようになるのはまだまだ先のことになりそうですね。まあプライベートで触るので、別に気にしていませんw</p>
+
+<h2>人手が・・・たりない・・・</h2>
+
+<p>もしここまで読んでいただいて、Perlで協力してやってもいいぜ？というお気持ちがある場合、是非、僕へのコンタクトを考慮していただけると幸いです。</p>
+
+<p>また、インフラエンジニアについても、今後間違いなく不足してくるだろうと見込んでいます。サーバの障害対応、システム管理ツール・社内開発支援系ツールの開発・導入などで、ご協力いただけると助かります。</p>
+
+<p>ちなみに乃木坂という場所柄か、閑静かつ緑豊かな場所にあるオフィスですので、繁華街の喧騒から離れつつ、都市の利便性も求めたい方にはおすすめです。</p>
+
+<h2>まとめ</h2>
+
+<ul>
+<li>仕事はじめたよ！</li>
+<li>Perlかいてるよ！</li>
+<li>新米グロースハッカーだけど需要あったよ！</li>
+<li>やることいっぱい！</li>
+<li>Unityを業務でさわるのはたぶんまだ先だよ！</li>
+<li>Perlエンジニア＆インフラエンジニアさん、いたらへんじして！！！</li>
+</ul>
+
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-05-17:entry-2015-05-17-09-55-02.html</id>
+<published>2015-05-17T11:03:14+09:00</published>
+<updated>2015-05-17T11:09:59+09:00</updated>
+</entry>
+<entry>
+<title type="text">いろんなイベントいってきたのでまとめてレポ</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-04-19-01-05-00.html" />
+<author>
+<name>satoshi azuma</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>ファッション無職を満喫していたもんで、最近ブログ更新サボってました。</p>
+
+<p>さて、ここ1週間で4つほどのイベントに参加してきました。</p>
+
+<p>本来であれば各イベントごとにエントリを立ててレポートしたほうが良いのでしょうけど、さすがに手間がかかり過ぎて、結果的に「書かない」っていうことになりそうなので、まとめてざっくりとレポートすることにしました。</p>
+
+<h2>dotNetConf 2015 Japan with JXUG</h2>
+
+<p>4/11(土)は <a href="https://atnd.org/events/63844">dotNetConf 2015 Japan with JXUG</a> に参加ということで、日本マイクロソフトさんにお邪魔しました。</p>
+
+<p>こちらに<a href="http://togetter.com/li/807057">togetter</a>がまとめられております。</p>
+
+<p>とくに、ASP.NETの話(途中から参加)と<a href="http://blog.shibayan.jp/entry/20150412/1428814854">.NET Core&amp;DNXの話</a>は、.NET初心者の自分は全く知らなかった内容でしたので、大変参考になるものでした。</p>
+
+<p>Docker + Ubuntu + .NET Core + Katana on GKE みたいなキメラ的構成でhello worldとかできそうな予感してたり・・・できるのかな。</p>
+
+<p>次回開催されることがあれば、ぜひ今度も参加したいです。</p>
+
+<h2>Unite 2015 Japan</h2>
+
+<p>4/13(月)と4/14(火)は Unite 2015 Japan 参加のため、場所はお台場・ホテル日航東京へと足を運びました。</p>
+
+<p>やはりといいますか、VR技術の話題が目立っていた気がします。また、1日目当日に<a href="http://weekly.ascii.jp/elem/000/000/325/325266/">Unityの3DS対応</a>という発表があり、度肝を抜かされました。</p>
+
+<p>個人的には<a href="https://build.cloud.unity3d.com/landing/">Unity Cloud Build</a>や<a href="http://unityads.jp/">Unity Ads</a>などのエコシステムの充実が非常に興味深いものと感じました。</p>
+
+<p>そして、直接Unity Technology Inc.のメンバーに質問をすることができたのが大きな収穫でした。</p>
+
+<p>もうひとつ。登壇者に、グロースハックのマインドセットを持った方が多数いらっしゃったのが印象的でした。</p>
+
+<h2>Kichijoji.pm</h2>
+
+<p>4/17(金)には吉祥寺にて<a href="https://atnd.org/events/63688">Kichijoji.pm #3</a>が開催され、<a href="https://www.swipe.to/1918dj">たぶん普通のCPANモジュール開発手法</a>というタイトルで発表してきました。</p>
+
+<p>「ツールチェーン」というテーマではあったのですが、結局のところ、Minillaの使い方の触り程度を説明して、あとは最近利用しているXaaSの紹介（ツールつながりってことで・・・）をしてきたわけですが、思ったよりも15分って短いなぁ、という感想です。</p>
+
+<p>で。僕の発表では触れなかったMinillaの深い部分の解説をsongmuさんがしてくれていて、Minillaの良さ・賢さが伝わったのではないか、と思います。</p>
+
+<p>あとmoznionがData::Dumper とか Carp::confess() の話をしていたのですが、内容やアプローチが大変初心者向けで良いなぁと思ったりしてました。</p>
+
+<p>akira1908jpさんによるUstもあったとのことで、比較的初心者向け～経験者向けの幅広い内容の発表があり、充実していましたね。</p>
+
+<h2>Hachioji.pm</h2>
+
+<p>そして4/18(土)はHachioji.pm参加のため、八王子のタイラーンナーにいってきました。</p>
+
+<p>どうやら今回のお題は「命名」とかだったらしいのですが、全く気が付いておらず、結果的にテーマを無視して<a href="https://www.swipe.to/4862dj">Unite 2015 Tokyo Report</a>という発表をしてきました。</p>
+
+<p>内容はUnite 2015 Japanの感想とか、気になった発表とか、得た知見の紹介であったりとか、そういうものです。</p>
+
+<p>uzullaさんが「JSXは最強のテンプレートエンジンでは？」と言っていたのが印象深いですね。あとhirobanexさんがSmarty2の話をしていたり、hkobaさんがYATT::Liteの機能追加の話をしていたりして、時代はテンプレートなのか？と思ったり。hide_o_55さんの簡潔ビットベクトルの話とかは、毎回本当によく実装してくるなあ、という風に思い、感心するわけです。</p>
+
+<h2>まとめ</h2>
+
+<p>どのイベントも大変に活気があり、そして多くの知見を得ることができました。都合が付く限り、それぞれ次回開催時には改めて参加したい気持ちがあります。</p>
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-04-19:entry-2015-04-19-01-05-00.html</id>
+<published>2015-04-19T02:00:39+09:00</published>
+<updated>2015-04-19T02:00:39+09:00</updated>
+</entry>
+<entry>
+<title type="text">「プログラマ」やめるぞい</title>
+<link href="http://ytnobody-riji.azurewebsites.net/entry/2015-04-01-12-35-32.html" />
+<author>
+<name>ytnobody</name>
+</author>
+<content type="html">
+<![CDATA[
+
+<p>さて、当ブログを見てくださっている皆さんでしたら既にご存知かと思いますが、僕はPerlをメインに扱っているサーバサイドプログラマです。</p>
+
+<p>しかし、そのお仕事とも4/6でお別れをすることになりました。渋谷よ、サヨウナラ。</p>
+
+<h2>なぜ？</h2>
+
+<h3>エンジニアとしての回答</h3>
+
+<p>僕は最近Unity及びC#に入れ込んでおりまして、Javaスキルを求められる未来を見た時に、それよりもUnity/C#の方に魅力を感じたからです。</p>
+
+<p>C#はとにかく出口の多い言語であり、現時点でデスクトップアプリ、モバイルアプリ（iOS/Android/Windows Phone）、webアプリをC#で開発することが出来る状況です。</p>
+
+<p>Javaでも同様のことが可能ではあるのですが、やはりMicrosoft .NETのオープンソース化が非常に大きな引き金になっており、数年後にはJavaと同様に、エンジニアにとっての有力な選択肢になり得ると思います。</p>
+
+<p>また、完全に個人的見解ですが、エディタであるMonoDevelopはEclipseよりもシンプルで使い勝手が良いと感じており、この点についてもJavaよりもC#を優先する一因となっています。</p>
+
+<p>そして、今年の初めにUnityで<a href="http://ytnobody.net/impress/Papizilla/">Papizilla</a>を開発してから、僕の中でUnityに対する評価が鰻登りになったのです。こんなに簡単にゲームを、ネイティブアプリを作れるのか、と驚いたものです。Unityを使うと、Android向けにアプリケーションをpublishすることが可能ですし、Xcodeプロジェクトとして出力することもできますので、iOS向けにもアプリケーションをpublishできるのです。</p>
+
+<p>ちなみに次の予定は相変わらずPerlも触るしUnityも触ってよし！という感じです。</p>
+
+<p>あ、誤解のないように補足しますが、あくまで僕の興味の対象が、JavaよりもUnity/C#のほうに強く惹かれている、というだけの話です。Javaはおそらく今後も使われ続けるだろうし、Java8は良いものだと思いますよ。</p>
+
+<h3>ビジネスパーソンとしての回答</h3>
+
+<p>誰かがサービスの方向性を決めて、方向性に沿った企画に基づきプログラムを作る「プログラマ」という役割を４年近くこなしてきたわけなのですが、６年先くらいを見据えた時に、「お客様にリーチし、直接対話する立場」に立つべきだな、と思いました。観測結果を元にサービスの改善を常に考え、実行に移し、サービスの成長を促進させるエンジニアになりたかったのです。</p>
+
+<p>そのためには、エンジニアリングとユーザサポート、ディレクションを並行してやらせてくれるような場所が必要でした。</p>
+
+<p>このような役割を、世の中では''グロースハッカー''と呼ぶようですが、今回、そのようなキャリアパスを示していただいた企業が国内にあったことに、大変感謝をする次第です。</p>
+
+<h2>得たもの</h2>
+
+<h3>アクの少ないコードを書く能力</h3>
+
+<p>入社当初、僕のコードには大変に宜しくない癖のようなものが多々ありました。</p>
+
+<p>どのようなものかについては、<a href="http://yellowstore.blogspot.jp/2012/10/perl.html">こちらのエントリ</a>に詳しく明記してあります。</p>
+
+<p>べからずを沢山指摘いただけた分、だいぶアクの少ないコードを書くことが出来るようになった、と自分で実感しております。</p>
+
+<h3>シンプルに設計する能力</h3>
+
+<p>これも入社当初と比較しての話ですが、目的を達成する上で、よりシンプルな実装に落としこめるように設計をすることが出来るようになった、と実感しております。</p>
+
+<p>得た知見を標語っぽくするならば、</p>
+
+<ul>
+<li><p>見た目にこだわった分、使ってもらえなくなる</p></li>
+<li><p>ログは外部の分析システムに投げ込め</p></li>
+<li><p>利用者が明確化していない物は実装するな</p></li>
+<li><p>単機能に徹しろ</p></li>
+</ul>
+
+
+<p>というところでしょうか。</p>
+
+<h3>普通自動二輪免許</h3>
+
+<p>まともに有給を取得できるはじめての勤め先でした。そのため、以前からほしいと思っていた普通自動二輪免許を取得することに有給をあてることができました。</p>
+
+<h3>横のつながり</h3>
+
+<p>おそらく渋谷に来なければ、<a href="http://perl-beginners.org/">Perl Beginners</a>をやろう、とはならなかったかもしれないですね。</p>
+
+<p>そもそもPerl Beginnersは、<a href="http://hachiojipm.org/">Hachioji.pm</a>を町田で開催したときに、酒の入りきったまいんだー氏に「MySQL Casualって『ガチュアル』じゃないっすか？」って言った事がキッカケで出来上がったものです。</p>
+
+<p>しかし、前職のベンチャーにいる立場でイベント運営はどう考えても無理がありますし、都内に出てくる事自体が稀でしたので、まいんだー氏から「じゃあ今からドメイン取りましょう。それでイベント開いて人を集めてみてくださいよ」って言われた時に、「よしわかった」とは答えられなかったかもしれない。</p>
+
+<p>それが、結果的にPerl Beginnersをおよそ3年間、ほぼ2ヶ月おきに開催できたわけです。そして、そこであった沢山のエンジニアの皆さんと出会うことができた。</p>
+
+<p>また、Perl Beginnersの主催をしている、という事実があるおかげで、色々な方から覚えてもらいやすかった様でした。</p>
+
+<p>最近では<a href="http://machidapm-fm.tumblr.com/">マチピーFM</a>というものをやっているのですが、これはクラウド関連のトピックを中心に雑に「ダベる」だけのネット放送でして、おかげさまでそこそこの評判を頂いているようです。</p>
+
+<h2>最後に</h2>
+
+<p>今まで一緒にやってきた皆さん、本当にありがとうございました。</p>
+
+<p>次は乃木坂で「グロースハッカー」としてがんばるます。</p>
+
+<h2>まとめ</h2>
+
+<ul>
+<li><p>「プログラマ」から「グロースハッカー」になるよ！</p></li>
+<li><p>プログラミングをやめるわけじゃないよ！</p></li>
+<li><p>Unity/C#をつかうようになるよ！</p></li>
+<li><p>このまとめは本当だよ！嘘じゃないよ！</p></li>
+</ul>
+
+]]></content>
+<id>tag:ytnobody-riji.azurewebsites.net,2015-04-01:entry-2015-04-01-12-35-32.html</id>
+<published>2015-04-01T12:40:28+09:00</published>
+<updated>2015-04-01T15:55:17+09:00</updated>
+</entry>
+</feed>

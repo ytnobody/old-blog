@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+二千万レコードあるテーブルへのalterをサービスを止めずに流す | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2015-11-19-20-38-00.html">なぜなにTutum - いまTutumをオススメする12の理由</a>
+    <li class="next">next: <a href="/entry/2015-12-19-08-50-00.html">Perl入学式を社内に持ってきた話</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>二千万レコードあるテーブルへのalterをサービスを止めずに流す</h1>
+
+<p>※このエントリは<a href="http://qiita.com/advent-calendar/2015/mysql-casual">MySQL Casual Advent Calendar 2015</a>の5日目のエントリです。</p>
+
+<h2>openark-kit というものについて</h2>
+
+<p>ここまで読んでわかった方は、この先を読む必要はありません。</p>
+
+<p><a href="http://code.openark.org/forge/openark-kit">openark-kit</a>とは、mysqlの運用に便利なツールキットを14個あつめたソフトウェアパッケージです。</p>
+
+<p>Shlomi Noachという方がPythonで開発しており、少なくとも2009年に発表されているようです。
+2015-12-05時点での最新版は196.1となっており、.tar.gz および .deb で配布されております。</p>
+
+<h2>このエントリを書いた背景事情</h2>
+
+<p>そもそも僕自身、50を超えるクラスタ化されたmysqlノードと一緒に業務生活を送っております。
+ところが、システムが非常に古くさい構成のため、合計レコード数が2億から3億程度ある垂直分割されたテーブルに対しALTERを投げたりしなくてはいけなかったりします。
+あまり頻繁ではないのですが、それでも2ヶ月に1回はそういう作業をしているので、システムとしてはつらさのある構成であるとおもっていただいて結構です。実に小市民的だといえますね。</p>
+
+<h2>実際の使用例</h2>
+
+<p>今回はタイトルにあるように「ALTERを流す」ことをしたいと思います。</p>
+
+<p>まあとはいえ、私も実際のデータをブログに掲載するわけに行きませんので、2000万レコードのダミーデータを放り込んだテーブルを用意しました。</p>
+
+<pre><code>mysql&gt; desc member;
++-------+-----------------------+------+-----+---------+----------------+
+| Field | Type                  | Null | Key | Default | Extra          |
++-------+-----------------------+------+-----+---------+----------------+
+| id    | int(10) unsigned      | NO   | PRI | NULL    | auto_increment |
+| name  | varchar(32)           | NO   |     | NULL    |                |
+| sex   | enum('male','female') | NO   |     | NULL    |                |
+| pref  | int(11)               | NO   |     | NULL    |                |
+| memo  | text                  | YES  |     | NULL    |                |
++-------+-----------------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
+</code></pre>
+
+<p>おおむねこういう構成のテーブルです。牧歌的だとおもいます。私が普段触っているテーブルに比べ、いかにも簡単なものだとおもいます。</p>
+
+<pre><code>mysql&gt; select count(*) from member;
++----------+
+| count(*) |
++----------+
+| 20000000 |
++----------+
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>ちゃんと2000万レコードはありますね。</p>
+
+<pre><code>mysql&gt; show indexes in member;
++--------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table  | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++--------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| member |          0 | PRIMARY  |            1 | id          | A         |    20000403 |     NULL | NULL   |      | BTREE      |         |               |
++--------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>インデックスはIDのみ。あるあ・・・ねーよｗｗｗｗ</p>
+
+<p>さて、こんな状態のテーブルなので、基本的にはid以外での絞り込みは遅いです。たとえば</p>
+
+<pre><code>SELECT id, name FROM member WHERE pref=24 LIMIT 100;
+</code></pre>
+
+<p>見たいなqueryがバコスコ飛んできている状況を考えた場合、賢明な諸兄であれば 「とりあえずprefだけでもindexつくっておきたい」などと思うはず。しかし、ALTERはTABLEレベルでロックをかけるので、サービス提供中に実施するのはためらわれますよね。</p>
+
+<p>そこで <code>oak-online-alter-table</code> の登場です！</p>
+
+<p>使用例は以下のような感じ。</p>
+
+<pre><code># oak-online-alter-table \
+    --sleep=100 \
+    --user=oak \
+    --password=oakpass \
+    --database=dummy \
+    --table=member \
+    --socket=/var/run/mysqld/mysqld.sock \
+    --alter='ADD INDEX idx_member_pref(pref)'
+</code></pre>
+
+<p>簡単に説明していきます。</p>
+
+<p>sleepはmsec単位で指定できますが、これはレコードをコピーしたり削除したりするときに待機するインターバル時間です。
+あまり小さく設定しすぎると負荷がきつくなってしまいますし、大きくしすぎると今度は待ち時間が長くなってしまい、余分に待たされることになります。</p>
+
+<p>alterには、本当にalter構文でやりたかった内容を書けばよいです。</p>
+
+<p>そのほかはなんとなく見てればわかるんじゃないかな・・・（雑</p>
+
+<p>さて、これを実行すると以下のようにログが流れていきます。</p>
+
+<pre><code>-- Connecting to MySQL
+-- Table dummy.member is of engine innodb
+-- Checking for UNIQUE columns on dummy.member, by which to chunk
+-- Possible UNIQUE KEY column names in dummy.member:
+-- - id
+-- Table dummy.__oak_member has been created
+-- Table dummy.__oak_member has been altered
+-- Checking for UNIQUE columns on dummy.__oak_member, by which to chunk
+-- Possible UNIQUE KEY column names in dummy.__oak_member:
+-- - id
+-- Checking for UNIQUE columns on dummy.member, by which to chunk
+-- - Found following possible unique keys:
+-- - id (int)
+-- Chosen unique key is 'id'
+-- Shared columns: memo, pref, id, name, sex
+-- Created AD trigger
+-- Created AU trigger
+-- Created AI trigger
+-- Attempting to lock tables
+
+-- Tables locked WRITE
+-- id (min, max) values: ([1L], [20000000L])
+-- Tables unlocked
+-- - Reminder: altering dummy.member: ADD INDEX idx_member_pref(pref...
+-- Copying range (1), (1000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (1000), (2000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (2000), (3000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (3000), (4000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (4000), (5000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (5000), (6000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (6000), (7000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (7000), (8000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (8000), (9000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (9000), (10000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (10000), (11000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (11000), (12000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (12000), (13000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (13000), (14000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (14000), (15000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (15000), (16000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (16000), (17000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (17000), (18000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (18000), (19000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (19000), (20000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- - Reminder: altering dummy.member: ADD INDEX idx_member_pref(pref...
+-- Copying range (20000), (21000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (21000), (22000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (22000), (23000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (23000), (24000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (24000), (25000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (25000), (26000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (26000), (27000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (27000), (28000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (28000), (29000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (29000), (30000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (30000), (31000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (31000), (32000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (32000), (33000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (33000), (34000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (34000), (35000), progress: 0%
+-- + Will sleep for 0.1 seconds
+-- Copying range (35000), (36000), progress: 0%
+-- + Will sleep for 0.1 seconds
+</code></pre>
+
+<p>注目すべきは progress: 0% のところ。これが100%になるとALTER完了です。</p>
+
+<pre><code>-- + Will sleep for 0.1 seconds
+-- Deleting range (19997000), (19998000), progress: 99%
+-- + Will sleep for 0.1 seconds
+-- Deleting range (19998000), (19999000), progress: 99%
+-- + Will sleep for 0.1 seconds
+-- Deleting range (19999000), (20000000), progress: 99%
+-- + Will sleep for 0.1 seconds
+-- Deleting range 100% complete. Number of rows: 0
+-- Table dummy.member has been renamed to dummy.__arc_member,
+-- and table dummy.__oak_member has been renamed to dummy.member
+-- Table dummy.__arc_member was found and dropped
+-- ALTER TABLE completed
+</code></pre>
+
+<p>・・・さて、僕の環境ではだいたい30分ほどかかりましたが、以下の通りINDEXの追加に成功しています。</p>
+
+<pre><code>mysql&gt; show indexes in member;
++--------+------------+-----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table  | Non_unique | Key_name        | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++--------+------------+-----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| member |          0 | PRIMARY         |            1 | id          | A         |    20000403 |     NULL | NULL   |      | BTREE      |         |               |
+| member |          1 | idx_member_pref |            1 | pref        | A         |          18 |     NULL | NULL   |      | BTREE      |         |               |
++--------+------------+-----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+2 rows in set (0.00 sec)
+</code></pre>
+
+<p>cardinalityが低いので、正直このインデックスはかなり効果薄いんですけどね！！！！！！１１１</p>
+
+<h2>どういう原理なの？</h2>
+
+<p>簡単に説明すると、まず既存テーブルと同じ構成のテーブルを作り、既存テーブルにいくつかのINSERT/UPDATE/DELETE時に実行されるトリガーをはやしておきます。
+こうすることで、既存テーブルへの変更をそのまま新しいテーブルに反映できる、というわけです。</p>
+
+<p>そして、既存テーブルから1000件ずつレコードをコピーしていき最後に整合性をとってから、既存テーブルと新テーブル名を入れ替えて、既存テーブルを削除して終了という流れになります。</p>
+
+<p>言葉で書くとわかりにくいのですが、<a href="http://d.hatena.ne.jp/sh2/20100703">こちらのブログエントリ</a>に大変わかりやすい解説が載っておりますので、そちらも参照してみてください。</p>
+
+<h2>やばいときには・・・</h2>
+
+<p>もし「あー！このALTERやったらあかんやつや！！！」って途中で気が付いても大丈夫。</p>
+
+<p>Ctrl-Cしてから、<code>--alter</code>オプションの変わりに<code>--cleanup</code>オプションをつけて実行すれば、なんと一時テーブルとトリガーを綺麗に無かったことにしてくれます。</p>
+
+<p>これでやらかす頻度が減るよ！やったねたえちゃん！</p>
+
+<h2>最後に</h2>
+
+<p>僕はoak-online-alter-tableをサービスで、しかも3億近くあるレコードを持つテーブル郡に実施したりしていますが、これまで全く異常にぶち当たったことがありません。</p>
+
+<p>非常に古く、たぶん若い方は名前も聞いたことすらないかもしれないですけど、枯れていて、実直なツールですので、ぜひ試してみてはいかがでしょうか？</p>
+
+<p>簡単に試したい向きには <a href="https://hub.docker.com/r/ytnobody/openark-kit/">docker image</a>もつくってありますので、「アタシんとこ、セントオーエス7なの・・・」という向きにも触ってもらいやすいかと思います。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/mysql.html">mysql</a></li>
+      <li><a href="/tag/openark-kit.html">openark-kit</a></li>
+      <li><a href="/tag/ops.html">ops</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-12-05 18:53</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-12-05 18:56</dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+MySQLに放り込んだXMLのネストが深すぎるとつらいという話 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/hokkaidopm-10-report.html">Hokkaido.pm #10 に行ってきたのでメモを晒したり感想をかいてみるよ！</a>
+    <li class="next">next: <a href="/entry/2013-09-09-18-49-25.html">plenv local な環境下でDBD::mysqlがうまく入らないときは</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>MySQLに放り込んだXMLのネストが深すぎるとつらいという話</h1>
+
+<p>MySQLにXMLを放り込んでそこからextractvalue()関数を使ってタイトルをとってくる、みたいなことをしてたんだけど、どうも時折タイトルがNULLでかえってくることがあって、調べてみた。</p>
+
+<p>傾向としては、1レコードあたりのXMLデータがでかい時に発生している雰囲気だったので、サイズのせいかなー、等とぼやぼや考えながら SHOW WARNINGS; を発行。</p>
+
+<p>すると、以下のようなエラーが並んでいた。</p>
+
+<pre><code>mysql&gt; SHOW WARNINGS;
++---------+------+-------------------------------------------------------------------+
+| Level   | Code | Message                                                           |
++---------+------+-------------------------------------------------------------------+
+| Warning | 1525 | Incorrect XML value: 'parse error at line 85 pos 36: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 56 pos 31: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 85 pos 36: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 62 pos 31: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 85 pos 36: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 85 pos 36: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 90 pos 50: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 85 pos 36: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 65 pos 31: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 85 pos 36: To deep XML' |
+| Warning | 1525 | Incorrect XML value: 'parse error at line 65 pos 31: To deep XML' |
++---------+------+-------------------------------------------------------------------+
+11 rows in set (0.00 sec)
+</code></pre>
+
+<p>'To deep XML'... XMLが深すぎるとな？</p>
+
+<p>・・・とりあえずもう少し調べてみると、<a href="http://forums.mysql.com/read.php?10,419682,419747#msg-419747">http://forums.mysql.com/read.php?10,419682,419747#msg-419747</a>に辿り着いた。</p>
+
+<p>簡単に言うと、mysqlのextractvalue()関数ではXMLデータの要素は60ノードまでしかパースできないらしく、それ以上になるとXMLとして扱ってくれない。結果的にNULLを返す、ということになっていた模様。</p>
+
+<p>なかなかハマりどころではありますな。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/mysql.html">mysql</a></li>
+      <li><a href="/tag/xml.html">xml</a></li>
+      <li><a href="/tag/memo.html">memo</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2013-09-06 16:44</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2013-09-22 14:21</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

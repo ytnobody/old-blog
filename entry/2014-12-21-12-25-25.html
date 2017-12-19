@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+MeCab? それDockerでできるよ | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-12-01-23-49-57.html">Google Cloud SQL を雑にMySQLの代用品として利用してみた</a>
+    <li class="next">next: <a href="/entry/2015-01-12-15-14-00.html">Unityの練習として1週間くらいでゲームを作ってみた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>MeCab? それDockerでできるよ</h1>
+
+<p>これは<a href="http://qiita.com/advent-calendar/2014/perl">Perl Advent Calendar 2014</a>の21日目のために書かれたエントリです。
+前日のエントリは @ar_tama さんによる<a href="http://d.hatena.ne.jp/ar_tama/20141220/1419081939">『ちいさなべんりコマンド「bit」をつくった話』</a>でした。</p>
+
+<h2>さて本題。</h2>
+
+<p>日本語の構文解析（というか形態素解析）を行う上で、割と古くから活用されている「mecab（めかぶ）」。このmecabをPerlから利用するためのライブラリに<a href="http://search.cpan.org/~dmaki/Text-MeCab-0.20016/lib/Text/MeCab.pm">Text::MeCab</a>というものがあって、大変に有用ですね。みなさんも日常的に形態素解析をされていると思いますので、よくご存知かと思います。</p>
+
+<p>しかし、その導入には割と手間がかかります。各種依存ライブラリの導入、辞書データの導入（この時に文字コードをutf8にし忘れたりとか）あたりがそうでしょうかね。</p>
+
+<h2>導入の手間がかかるものはDockerに押し込んでしまえ</h2>
+
+<p>少し前に、<a href="http://techlife.cookpad.com/entry/ffmpeg_and_imagemagick_setup_with_docker">FFmpegやらImageMagickをDockerに入れると楽だよねー</a>という感じの内容のブログエントリがありました。FFmpegもImageMagickも相当に導入が手間なプロダクトですので、その手間をDockerで自動化してしまう、というアプローチはとても良いと思いました。</p>
+
+<p>そこで、mecabとText::MeCabをDockerに入れて楽したらいいのでは？ということで、Docker Imageを作ってみました。</p>
+
+<ul>
+<li><p><a href="https://registry.hub.docker.com/u/ytnobody/mecab-psgi/">ytnobody/mecab-psgi</a></p></li>
+<li><p><a href="https://github.com/ytnobody/docker-mecab-psgi">github</a></p></li>
+</ul>
+
+
+<p>なんと、一緒に<a href="https://github.com/ytnobody/docker-mecab-psgi/blob/master/app.psgi">雑なJSON API</a>も付属しております。これでFurlなどで良しなにリクエストを投げてやると、いい感じに解析結果を返してくれるようになっています。</p>
+
+<h2>使い方</h2>
+
+<p>大変簡単です。まずコンテナの起動方法は以下の通り。</p>
+
+<pre><code>$ sudo docker run -p 7654:7654 -d ytnobody/mecab-psgi
+</code></pre>
+
+<p>あとは以下のようなURLにリクエストを投げてやると、JSONで解析結果のノードが帰ってきます。</p>
+
+<pre><code>http://docker-host:7654/?text=すもももももももものうち
+</code></pre>
+
+<h2>Dockerの導入すら面倒という向きのために</h2>
+
+<p>コンテナを雑に<a href="http://6226c85d-ytnobody.node.tutum.io:7654/?text=%E3%81%99%E3%82%82%E3%82%82%E3%82%82%E3%82%82%E3%82%82%E3%82%82%E3%82%82%E3%82%82%E3%81%AE%E3%81%86%E3%81%A1">デプロイ</a>しておきました。</p>
+
+<p>しょぼいノードなので、もしかしたらすぐ死んでしまうかもしれませんが、ちょっと試す程度には使えると思います。</p>
+
+<h2>まとめ</h2>
+
+<p>手間の掛かりそうなセットアップはdockerに押し込むと案外ぱっちりハマったりするかもしれませんね。</p>
+
+<p>さて、明日はmAKudozさんがなにか書いてくれるみたいですよ？</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/docker.html">docker</a></li>
+      <li><a href="/tag/mecab.html">mecab</a></li>
+      <li><a href="/tag/adventcalendar.html">adventcalendar</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-12-21 13:01</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-12-21 13:04</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

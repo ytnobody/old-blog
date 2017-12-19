@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Google Container Engine(GKE)が発表されたので、早速試してみた | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-10-23-18-58-39.html">tutumを使ってserviceをdigital oceanに乗せてみた</a>
+    <li class="next">next: <a href="/entry/2014-11-07-18-07-44.html">Docker + nginx + td-agent + bigqueryで構築するログ集計機能付きhttp-proxy</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Google Container Engine(GKE)が発表されたので、早速試してみた</h1>
+
+<p>つい先日、GoogleがGKEなるプラットフォームを発表しました。いわゆるDaaSの一種と見做して良いと思いますが、Dockerにご執心の身としては触らないわけには・・・ということで、早速試してみました。</p>
+
+<ul>
+<li>関連：<a href="http://www.publickey1.jp/blog/14/google_container_enginedockerkubernetes.html">［速報］Google Container Engine発表。Dockerコンテナを実行しKubernetesで管理するクラウドサービス － Publickey</a></li>
+</ul>
+
+
+<p>このエントリでは、既存のdocker imageからザクッとcontainerを立ち上げ、外から見れるようにする所まで、おおまかに解説していこうと思います。</p>
+
+<p>なお、今回は以前僕がdockerhubに上げた<a href="https://registry.hub.docker.com/u/ytnobody/docker-riji/">ytnobody/docker-riji</a> を使っていきます。</p>
+
+<p>※基本的に<a href="https://cloud.google.com/container-engine/docs/getting-started">GKEのGetting started</a>みて解かる人は、このエントリは読まなくて良さそうだと思います。</p>
+
+<p>※ytnobodyは、執筆時点において、kubernetesについて全く教養を持ち合わせていません。</p>
+
+<h2>環境など</h2>
+
+<p>僕の試したクライアント環境はこんな感じです。</p>
+
+<ul>
+<li>Lubuntu-14.10 amd64 on VMware</li>
+</ul>
+
+
+<p>Mac? 僕は常時VMで生活してる人間なのでよくわかりませんね。多分問題なく利用できるんじゃないですか（無責任</p>
+
+<h2>準備</h2>
+
+<h3>先にやっておこう</h3>
+
+<p>予めやっておくこととしては、以下の作業が挙げられます。</p>
+
+<ul>
+<li>gcloud(Google Cloud SDK)を入れておく →<a href="https://cloud.google.com/sdk/#Quick_Start">参考:Installation and Quick Start</a></li>
+<li><code>gcloud auth login</code> で Google Cloud Engine(以下GCE)にログインしておく</li>
+<li>GCEに登録する →<a href="https://cloud.google.com/compute/docs/signup">参考:Sign Up for Google Compute Engine</a></li>
+<li>GCEにプロジェクトを登録しておく</li>
+</ul>
+
+
+<h3>gcloud に preview コンポーネントを追加する</h3>
+
+<p>手始めに、<code>gcloud</code>にkubarnatesを操作するためのサブコマンドたちを追加するため、preview というコンポーネントを追加します。</p>
+
+<pre><code>$ gcloud component update preview
+</code></pre>
+
+<p>その後、<code>gcloud</code>に project id を食わせておきましょう。</p>
+
+<pre><code>$ gcloud config set project project-id-123
+</code></pre>
+
+<h3>GKEクラスタを作る</h3>
+
+<p>次に、docker containerをまとめ上げるクラスタを作ります。your-cluster-nameのところ(=クラスタ名)は任意の名前を入れてください。</p>
+
+<pre><code>$ gcloud preview container clusters --zone=asia-east1-a create your-cluser-name
+</code></pre>
+
+<p>なお、この時に指定可能なzoneは、執筆時点で以下の通りです。(europe-west1-aは利用不可のようです)</p>
+
+<ul>
+<li>asia-east1-a</li>
+<li>asia-east1-b</li>
+<li>asia-east1-c</li>
+<li>europe-west1-b</li>
+<li>europe-west1-c</li>
+<li>us-central1-a</li>
+<li>us-central1-b</li>
+<li>us-central1-f</li>
+</ul>
+
+
+<p>ここで指定したzoneとクラスタ名は非常に重要ですので、忘れないでください。</p>
+
+<p>コマンドを実行すると、なんだかワチャワチャと情報が表示されますが、念の為以下のコマンドでクラスタのステータスを確認してみてください。</p>
+
+<pre><code>$ gcloud preview container clusters --zone=asia-east1-a list
+</code></pre>
+
+<p>ここまでやって、以下のような具合で出力されていれば、クラスタは無事に作成できています。</p>
+
+<pre><code>clusters:
+- clusterApiVersion: 0.4.2
+  containerIpv4Cidr: 10.141.0.0/16
+  creationTimestamp: '2014-11-05T01:44:28+00:00'
+  description: ''
+  endpoint: 104.155.204.24
+  masterAuth:
+    password: n4Gmjl6nfjLXqFBM
+    user: admin
+  name: ytnobody01
+  nodeConfig:
+    machineType: f1-micro
+    sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/backports-debian-7-wheezy-v20141021
+  nodeRoutingPrefixSize: 24
+  numNodes: 1
+  servicesIpv4Cidr: 10.0.0.0/16
+  status: running
+  zone: asia-east1-a
+</code></pre>
+
+<h3>Google Developers Consoleから見てみる</h3>
+
+<p>「ほんとにクラスタはできてるの？」とご心配でしたら、<a href="https://console.developers.google.com/project">Google Developers Console</a>にアクセスして、今回新しく作ったプロジェクトを見てみましょう。</p>
+
+<p>プロジェクトメニューが左側に展開されたら、その中から 計算処理＞Container Engine という順にたどってみてください。そこには以下の画像のように、先ほど作ったGKEクラスタの一覧が表示されていますね。</p>
+
+<p><img src="http://i.gyazo.com/eedca38195bcbe11734778d0baa14330.png" alt="GKEクラスタのご様子" /></p>
+
+<p>ではクラスタ名をクリックしてみましょう。以下の画像のようになっていることと思います。</p>
+
+<p><img src="http://i.gyazo.com/3980083805a10484fddb5085ca4361b8.png" alt="ノードは2個ある" /></p>
+
+<p>ここで一つ気がつく方もいるかもしれませんが、Cluster detailsのところに、インスタンスが2こ並んでますね。これについては後ほど解説します。</p>
+
+<h2>GKEで必須の概念</h2>
+
+<p>さて、このあたりで、GKEで必須となる考え方を説明します。</p>
+
+<h3>podとservice</h3>
+
+<p>GKEでは<a href="https://cloud.google.com/container-engine/docs/pods/">pod</a>と<a href="https://cloud.google.com/container-engine/docs/services/">service</a>という概念が大変重要です。これらをそれぞれ雑に解説すると、、、</p>
+
+<ul>
+<li><p><code>pod</code>: docker containerの構成をまとめあげた概念。何個コンテナを用意するかとか、環境変数とか、EXPOSEするポートなんかは、全部コイツで集中管理する。</p></li>
+<li><p><code>service</code>: 外界とpodを接続するための設定をまとめあげた概念。手っ取り早く例えるなら、ロードバランサーです。</p></li>
+</ul>
+
+
+<p>という感じです。ネットワーク構成的には、</p>
+
+<pre><code>               +-Master--+      +----Node----+
+               |         |      |            |
+Internet &lt;----&gt;| service |&lt;----&gt;| container1 |
+               |         |      |            |
+               +---------+      +------------+
+</code></pre>
+
+<p>のような具合です。上のAAはあくまで、コンテナを1個しか用意しないpodを使う場合なのですが、これがコンテナを4個とか用意する場合は、</p>
+
+<pre><code>               +-Master--+      +----Node----+
+               |         |      |            |
+Internet &lt;----&gt;| service |&lt;----&gt;| container1 |
+               |         |      | container2 |
+               +---------+      | container3 |
+                                | container4 |
+                                +------------+
+</code></pre>
+
+<p>のようになるということです。</p>
+
+<p>なお実際のところ、<a href="https://cloud.google.com/container-engine/docs/replicationcontrollers/">replication controller</a>という重要な概念もあり、同一構成のコンテナを複数持たせたい場合に利用するようです。</p>
+
+<h3>MasterとNode</h3>
+
+<p>前述のAAを見て、もう察しの良い方は感づいたとおもいますけど、先ほどDevelopers Consoleでみた2つのノードは<code>Master</code>と<code>Node</code>に分かれており、それぞれはっきりと役割が分担されています。</p>
+
+<ul>
+<li><code>Master</code>: serviceに記述された設定がそのままデプロイされる。ただし、任意のアプリケーションを動作させる等といったことはできない。</li>
+<li><code>Node</code>: podに記述された設定の通りにコンテナがデプロイされる。</li>
+</ul>
+
+
+<p>Nodeには直接インターネットからアクセスすることはできず、必ずMasterにデプロイされたserviceを通してアクセスすることになります。</p>
+
+<p>おそらく、急激に負荷が増大した際には、pod側のコンテナ数を増やしてリデプロイすることでスケールアップができる、という具合なのかと思います。(この辺、多分replication controllerを使うべきなのでしょうね)</p>
+
+<h2>定義すべき設定</h2>
+
+<h3>podを定義してみる</h3>
+
+<p>googleのドキュメンテーションには「guestbook」のような例が有ったりするのですが、要するにpodとserviceを適切に設定すると、それっぽく見えるようになる、ということらしいです。</p>
+
+<p>では、今回の例に利用するpod定義ファイル<code>riji-master-pod.json</code>をお披露目しましょう。</p>
+
+<pre><code>{
+  "id": "riji-master",
+  "kind": "Pod",
+  "apiVersion": "v1beta1",
+  "desiredState": {
+    "manifest": {
+      "version": "v1beta1",
+      "id": "riji-master",
+      "containers": [
+        {
+          "name": "riji-master",
+          "image": "ytnobody/docker-riji",
+          "ports": [
+            {
+              "name": "riji-server",
+              "containerPort": 80,
+              "destPort": 3650,
+            }
+          ],
+          "env": [
+            { 
+              "name": "BLOG_REPO_URL", 
+              "value": "https://github.com/ytnobody/Riji-Vanilla.git"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "labels": { "name": "riji", "role": "master" }
+}
+</code></pre>
+
+<p>これらの定義は、<a href="https://cloud.google.com/container-engine/docs/pods/operations#manifest">manifest</a>を参照しながら対比してみるとよいでしょう。特徴として、<code>manifest/containers/image</code> に対し、dockerhubにおけるimage名を指定している点です。基本的にはdockerhubからイメージを落としてくることが前提にある様で、今回の範囲では、プライベートレジストリからのdocker pullへの取り組みについては確認できておりません。</p>
+
+<p>このpodは、riji-masterというpodクラスタを構成し、コンテナを１つだけ含んでおり、80/tcpで待ち受けてるrijiを、3650/tcpに置き換えて、コンテナ外部からアクセスを受け付ける、という内容のものです。envについては、<code>riji setup</code>直後のデータをRiji-Vanillaという名称でgithubにpushしてあるので、それをサンプルとして利用することにしました。</p>
+
+<h3>serviceを定義してみる</h3>
+
+<p>今度はservice定義ファイル<code>riji-master-service.json</code>です。</p>
+
+<pre><code>{
+  "apiVersion": "v1beta1",
+  "kind": "Service",
+  "id": "riji-master",
+  "port": 3650,
+  "containerPort": "riji-server",
+  "selector": { "name": "riji", "role": "master" },
+  "createExternalLoadBalancer": true
+}
+</code></pre>
+
+<p>serviceの定義については、googleのドキュメンテーションにはそれっぽいリファレンス的なものが見当たらなかったのですが、<a href="https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/services.md">Kubernetesのgithub project page</a>に若干それらしいものがあったので、参考にしつつ記述を行いました。</p>
+
+<p>このserviceは、外界に対し3650/tcpを開放し、そこに来たアクセスをriji-server podクラスタに流し込む、というものです。</p>
+
+<h2>動かしてみる</h2>
+
+<h3>podおよびserviceをデプロイ</h3>
+
+<p>以下のコマンドで、podのデプロイを行います。</p>
+
+<pre><code>$ gcloud preview container pods \
+    --cluster-name=your-cluster-name \
+    create riji-master-pod \
+    --zone=asia-east1-a \
+    --config-file=./riji-master-pod.json
+</code></pre>
+
+<p>実行後、以下のような方法で、podの状態確認を行いましょう。多少時間がかかるかもしれませんが、StatusがRunningになっていれば、デプロイ完了です。</p>
+
+<pre><code>$ gcloud preview container pods -n your-cluster-name list -z asia-east1-a
+ID                  Image(s)               Host                           Labels                  Status
+----------          ----------             ----------                     ----------              ----------
+riji-master         ytnobody/docker-riji   xxx.internal/100.110.120.130   name=riji,role=master   Running
+</code></pre>
+
+<p>次に、serviceをデプロイします。</p>
+
+<pre><code>$ gcloud preview container services \
+    --cluster-name=your-cluster-name \
+    create \
+    --zone=asia-east1-a \
+    --config-file=./riji-master-service.json
+</code></pre>
+
+<p>実行後、こちらもserviceの状態確認を行いましょう。</p>
+
+<pre><code>$ gcloud preview container services -n your-cluster-name list -z asia-east1-a
+ID                  Labels              Selector                Port
+----------          ----------          ----------              ----------
+riji-master                             name=riji,role=master   3650
+</code></pre>
+
+<p>このように、指定したportが表示されていればOKです。</p>
+
+<h3>firewall設定を調整する</h3>
+
+<p>「よし、アクセスしてみよう！」と思ったはいいけど、実際MasterノードのIPの3650/tcpにアクセスしてみると、timeoutします。</p>
+
+<p>ちょっと調べた末にたどり着いたのは「firewallで3650/tcpへのアクセスを許可する」という作業。とはいえ、これもコマンド一発で済ませられます。</p>
+
+<pre><code>$ gcloud compute firewall-rules create riji-allow-rule --allow tcp:3650
+</code></pre>
+
+<p>多少時間がかかりますが、以下のような表示が出てくればOKです。</p>
+
+<pre><code>Created [https://www.googleapis.com/compute/v1/projects/your-project-123/global/firewalls/riji-allow-rule].
+NAME            NETWORK SRC_RANGES RULES     SRC_TAGS TARGET_TAGS
+riji-allow-rule default 0.0.0.0/0  tcp:3650
+</code></pre>
+
+<h3>アクセスしてみる</h3>
+
+<p>さて、ここまで出来たら、あとはアクセスするだけ・・・なのですが、じゃあどこにアクセスすればいいんでしょう？</p>
+
+<p>それを知っているのは、GCEのforwarding ruleです。以下のコマンドでアドレスを確認してみましょう。</p>
+
+<pre><code>$ gcloud compute forwarding-rules list
+NAME        REGION     IP_ADDRESS     IP_PROTOCOL TARGET
+riji-master asia-east1 130.211.241.18 TCP         asia-east1/targetPools/riji-master
+</code></pre>
+
+<p>この場合、 http://130.211.241.18:3650 へアクセスすれば良いことになります。早速アクセスしてみましょう。(なお、このアドレスはytnobodyがGKEを使って押さえているので、実際はみなさん自身のアドレスで確認してください。)</p>
+
+<p>無事にrijiのサンプル記事が出てきましたでしょうか？ちゃんと見れたら、目的達成です。おめでとう。おめでとう。</p>
+
+<h2>実際使ってみた感想</h2>
+
+<p>GKEはエンタープライズ向けのDaaSという印象を受けました。実際のところ、今回構築したクラスタはレイテンシ面において大変優れているし、おそらく今回試さなかったreplication controllerを使うことで、より一層柔軟なスケーリング対応が可能となるはずです。</p>
+
+<p>安定性、速度、柔軟性では、おそらくかなり優れていると思いますが、カジュアルさは一切ありませんでしたね。UX/UIの観点からみるに、正直Developers Consoleは使いやすいとは言えないですし、ドキュメンテーションもあっさりした内容で、深く掘り下げるには物足りない。</p>
+
+<p>カジュアル用途、小規模用途には、すでに当ブログで紹介した tutumのほうが良さそうに思えます。しかし、大規模なコンテナクラスタを管理するとなると、GKEは良い選択肢となり得るでしょうね。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/Docker.html">Docker</a></li>
+      <li><a href="/tag/GKE.html">GKE</a></li>
+      <li><a href="/tag/DaaS.html">DaaS</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-11-06 20:23</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-11-06 23:44</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

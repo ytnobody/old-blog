@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Otogiri-0.13 has been released | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-06-25-16-11-35_3.html">VZNopeというOpenVZ wrapperの紹介 (3)</a>
+    <li class="next">next: <a href="/entry/2014-07-13-00-05-35.html">Mishima.pm #1 に行ってきた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Otogiri-0.13 has been released</h1>
+
+<p>「ORMのような何か」であるOtogiriの新バージョン、0.13をリリースしました。以下、大きな変更点について説明していきます。</p>
+
+<h2>イテレータの追加</h2>
+
+<p>今までなかったのが不思議なのですが、ようやくイテレータを追加しました。</p>
+
+<p>従来ですと、いくつかのレコードをselectするには、</p>
+
+<pre><code>my $db = Otogiri-&gt;new(...);
+my @rows = $db-&gt;select('book' =&gt; {...});
+</code></pre>
+
+<p>のように、配列で受け取る以外の方法が提供されていませんでしたが、0.13以降は</p>
+
+<pre><code>my $db = Otogiri-&gt;new(...);
+my $iter = $db-&gt;select('book' =&gt; {...});
+while (my $row = $iter-&gt;next) {
+    ...
+}
+</code></pre>
+
+<p>という感じでイテレータを通してレコードを取得することが可能となります。</p>
+
+<p>イテレータはDBIx::Otogiri::Iteratorというクラスのオブジェクトで、nextメソッドくらいしか提供していません。</p>
+
+<p>そしてnextメソッドは実質上、<code>DBD::st-&gt;fetchrow_hashref</code> とほぼ一緒ですので、レコードがやたら多いケースでもメモリを食いつぶさずに済むようになります。</p>
+
+<h2>SQL::Makerのstrictモードへの対応</h2>
+
+<p>OtogiriのコードはSQL::Makerとかなり密結合になっているのですが、そのSQL::Makerに1.16でstrictモードというものが実装されました。</p>
+
+<p>strictモードが実装されるまでの経緯ですとか説明は、下記エントリおよびドキュメンテーションを参照いただきたいと思います。</p>
+
+<ul>
+<li><p><a href="http://developers.mobage.jp/blog/2014/7/3/jsonsql-injection">不正なJSONデータによるSQL Injectionへの対策について (Json.pm+SQLクエリビルダー) — Mobage Developers Blog</a></p></li>
+<li><p><a href="https://metacpan.org/pod/SQL::Maker">SQL::Maker - Yet another SQL builder - metacpan.org</a></p></li>
+<li><p><a href="https://metacpan.org/pod/SQL::QueryMaker">SQL::QueryMaker - helper functions for SQL query generation - metacpan.org</a></p></li>
+</ul>
+
+
+<p>非常に掻い摘んだ説明をするならば、SQL::MakerのWhere指定箇所にJSONをデコードしただけのHashリファレンスを何のバリデーションもなしに突っ込むと、SQL Injectionの危険性を生じますよ、といったところでしょうか。</p>
+
+<p>ちなみにこのような問題は別にSQL::Makerに限らないと思いまして、結局のところユーザ入力を信頼しきった状況というのが危険性を生むということだと思います。</p>
+
+<p>さて、そんなわけでOtogiri側でも何かしらの対応が必要だろうということになりまして、おおまかに以下の方針で対応致しました。</p>
+
+<ol>
+<li><p>デフォルトでSQL::Makerのstrictモードを有効にするが、<code>Otogiri-&gt;new(strict =&gt; 0, ...);</code> とすることで無効化することもできる（つまり従来どおりの使い方ができる）。</p></li>
+<li><p><code>use Otogiri;</code> をした時点で、SQL::QueryMakerが提供するDSLをexportする。</p></li>
+</ol>
+
+
+<p>2については以下のように書けるようになります。</p>
+
+<pre><code>### 従来(0.13以降では、デフォルトでこのような書き方ができなくなる)
+use Otogiri;
+my $db = Otogiri-&gt;new(connect_info =&gt; [...]);
+my @rows = $db-&gt;select('book' =&gt; {price =&gt; {'&lt;=' =&gt; 1000}});
+
+### 新しい書き方
+use Otogiri;
+my $db = Otogiri-&gt;new(connect_info =&gt; [...]);
+my @rows = $db-&gt;select('book' =&gt; sql_ge('price' =&gt; 1000));
+</code></pre>
+
+<p>これは賛否の分かれる内容かと思っておりますが、現状の開発メンバーの使い方にはこの位の対応がちょうど良い、という結論から、このようにした次第です。</p>
+
+<h2>最後に</h2>
+
+<p>YAPC::Asia tokyo 2014 では、tsucchiさんと共同で<a href="http://yapcasia.org/2014/talk/show/d42c9d9e-ec91-11e3-b82e-98666aeab6a4">Otogiriについての発表および対談</a>ができるかもしれません（できないかもしれません）。</p>
+
+<p>このエントリを執筆している時点では選考中ですが、もし受かったら、短い時間の中ではありますが、この辺の話にも少し触れておきたいと考えております。</p>
+
+<p>聞きたいと思った方、ぜひ今からでも構いませんので、いいね！してもらえるとうれしいです。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/Otogiri.html">Otogiri</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-07-07 14:36</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-07-07 14:36</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

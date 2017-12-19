@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+究極に雑なデプロイができるContainer as a Service &quot;arukas.io&quot; | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2016-01-22-17-00-00.html">「ギロッポンでシースー」なAPIをコンテナにしてみた</a>
+    <li class="next">next: <a href="/entry/2016-05-29-09-06-46.html">BBQ::Builderscon に行ってきた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>究極に雑なデプロイができるContainer as a Service "arukas.io"</h1>
+
+<h2>Docker Cloudが出た！</h2>
+
+<p>先日tutumがめでたく<a href="http://cloud.docker.com/">Docker Cloud 1.0</a>としてリリースされました。基本的にDocker Cloudは有償サービスであり、コンテナ管理の手間をお金で解決するための仕組みという位置づけとなっています。</p>
+
+<p>気になる料金プランですが、1ノードあたり1時間につき0.02ドルとなっており、Docker Cloudに1ヶ月間1ノードを管理させた場合、執筆時の相場でおよそ1500円ほどかかることになります。エンタープライズ用途に耐えうるものであることを考えると、ディスカウントっぷりがすごいなあ、という感想です。</p>
+
+<h2>TutumからDocker Cloudへの移行を検討しよう</h2>
+
+<p>ところで、今から新しくtutumにアカウントを登録しようとしてもDocker Cloudへとリダイレクトされてしまい、旧tutumへのアカウント登録ができない状態となっています。</p>
+
+<p>そして既存のtutumアカウントをお持ちの方に、大事なことを２つお伝えしておきます。</p>
+
+<ol>
+<li><p><a href="https://tutum-community.slack.com/archives/general/p1455369867002541">Tutumは2016年5月31日で終了らしいです。</a></p></li>
+<li><p>TutumユーザにはDocker CloudのEarly Supporter Codeが付与されていて、Docker Cloudで2ノードまで無料で管理させておくことが可能です。</p></li>
+</ol>
+
+
+<p>それでは「今から無料でコンテナを試してみたい！」という向きはどうすればよいか。まあ素直にDocker Cloudのfreeプランを考慮するのがよろしいかと思いますが、もうひとつの選択として<a href="http://arukas.io">Arukas</a>を使ってみる方法があります。</p>
+
+<h2>Arukasとは？</h2>
+
+<p><a href="http://arukas.io">Arukas(アルカス)</a>とは国産のコンテナプラットフォームであり、現在ベータテスト期間中とのことで、以下の機能がすべて無償で利用可能です。</p>
+
+<ul>
+<li>サービスの追加</li>
+<li>サービスのコンテナ(インスタンス)数調整</li>
+<li>コンテナへのRAM割り当て(1コンテナに対して256MB/512MBが選択できる)</li>
+<li>ノードの透過的な提供</li>
+<li>portのexpose</li>
+<li>ENVおよびCMDの指定</li>
+</ul>
+
+
+<h2>何はともあれ使ってみよう</h2>
+
+<p>とりあえずアカウントを登録し終えると、ダッシュボードが表示されます。以下のような画面ですね。</p>
+
+<p><a href="https://gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07"><img src="https://i.gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07.png" alt="https://gyazo.com/67628e0a67e4bc1bdd966f8cd87daf07" /></a></p>
+
+<p>ここで「新しいアプリケーションを作成」をクリックすると、画面が切り替わって以下のようなフォームが登場します。</p>
+
+<p><a href="https://gyazo.com/86940a2eaf70a0600db066d79e7c3c96"><img src="https://i.gyazo.com/86940a2eaf70a0600db066d79e7c3c96.png" alt="https://gyazo.com/86940a2eaf70a0600db066d79e7c3c96" /></a></p>
+
+<p>今回は例として、先日作った<a href="http://blog.ytnobody.net/entry/2016-01-22-17-00-00.html">「ギロッポンでシースーなAPIのコンテナ」</a>を雑にデプロイしてみましょう。</p>
+
+<p>まず<code>Name</code>のところには自分で識別しやすくするためのサービス名を半角英数で入力していきます。今回は<code>giroppon</code>とでもしておきましょう。</p>
+
+<p>次に<code>Image</code>ですが、今回デプロイするDocker Imageは<a href="https://hub.docker.com/r/ytnobody/shukugawa-atom/">こちら</a>ですので、<code>ytnobody/shukugawa-atom</code>となります。</p>
+
+<p>そして<code>Port</code>に<code>7654</code>と入力します。これは<code>ytnobody/shukugawa-atom</code>がtcp/7654を使うからですね。</p>
+
+<p>これで以下のような状態になったかと思います。</p>
+
+<p><a href="https://gyazo.com/bb54eeddf6bbff9319853b4d327066da"><img src="https://i.gyazo.com/bb54eeddf6bbff9319853b4d327066da.png" alt="https://gyazo.com/bb54eeddf6bbff9319853b4d327066da" /></a></p>
+
+<p>ここまでできたら、あとは「アプリケーションを作成」ボタンをクリックするだけです。やたらシンプルですね！</p>
+
+<h2>アプリケーションが起動したら</h2>
+
+<p>実際にアプリケーションが起動すると、ダッシュボードのアプリケーション一覧には以下のように<code>giroppon</code>という名前でアプリケーションが追加されます。</p>
+
+<p><a href="https://gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6"><img src="https://i.gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6.png" alt="https://gyazo.com/4a4e881a2e519a14cd4d307ddb0a35b6" /></a></p>
+
+<p>では、アプリケーションの詳細画面を見てみましょう。</p>
+
+<p><a href="https://gyazo.com/31208a872ab78e5e2225fd97a14aa00d"><img src="https://i.gyazo.com/31208a872ab78e5e2225fd97a14aa00d.png" alt="https://gyazo.com/31208a872ab78e5e2225fd97a14aa00d" /></a></p>
+
+<p>アプリケーション新規作成のフォームとほぼ同じような構成になっている画面ですが、PortのところにコンテナへのエンドポイントURLが表示されているので、クリックしてみましょう。</p>
+
+<p>すると、ytnobody/shukugawa-atomが提供するAPIがレスポンスを返してきますね。ではgetパラメータとして<code>text=六本木で寿司</code>を渡してみます。</p>
+
+<p><a href="https://gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d"><img src="https://i.gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d.png" alt="https://gyazo.com/7e451db62c84ec6c2ab4cebf42796d1d" /></a></p>
+
+<p>このようにコンテナの動作を確認することができました。簡単ですね。</p>
+
+<h2>インスタンスを増やしてみる</h2>
+
+<p>今度はダッシュボードからインスタンスをひとつ増やしてみましょう。<code>giroppon</code>のアプリ詳細へ行き、以下のように<code>Instance</code>を2にして「保存」ボタンを押すだけです。</p>
+
+<p><a href="https://gyazo.com/a8250af9f87b151f191d0e715b576a8b"><img src="https://i.gyazo.com/a8250af9f87b151f191d0e715b576a8b.png" alt="https://gyazo.com/a8250af9f87b151f191d0e715b576a8b" /></a></p>
+
+<p>「保存」を押すとインスタンスが増えていることをアプリ詳細画面で確認できます。</p>
+
+<p><a href="https://gyazo.com/b496ab4a44593493169e2509c8f32567"><img src="https://i.gyazo.com/b496ab4a44593493169e2509c8f32567.png" alt="https://gyazo.com/b496ab4a44593493169e2509c8f32567" /></a></p>
+
+<p>インスタンスごとに別々のエンドポイントURLが発行されていることが分りますね。非常に楽なのがわかります。</p>
+
+<h2>Arukasの利点</h2>
+
+<p>一旦利点をまとめてみます。</p>
+
+<h3>ダッシュボードがシンプルで使いやすい</h3>
+
+<p>Tutumでも同じことを書きましたが、ダッシュボードのUIがシンプルにまとめられており、非常に使いやすいです。これはサービスが成功する上で必須の項目ですので、大変すばらしいことだと思います。</p>
+
+<h3>ノードについて気を回す必要がない</h3>
+
+<p>驚くべきことに、ArukasはDockerノードについて一切を考慮する必要がありません。
+いきなりDocker Imageを指定すればすぐに利用可能になりますし、「サーバレスアーキテクチャ」の一翼を担う存在と言えるかもしれません。</p>
+
+<h3>動作が速い</h3>
+
+<p>ダッシュボードを触ってみると、その動作の速度に驚かされるかと思います。
+僕の場合、実際にサービスをデプロイしてアクセス可能になるまでの時間が1分かからない程度でした。
+これは驚異に値する速度です。</p>
+
+<h2>Arukasの課題</h2>
+
+<p>これだけ簡単便利な国産コンテナプラットフォームなのですが、まだまだベータ期間ということもあって、課題がちらほらと見受けられます。</p>
+
+<h3>サービスエンドポイントURLが発行されない</h3>
+
+<p>インスタンスを増やしたときにコンテナごとにエンドポイントURLが発行されましたが、残念なことにサービスエンドポイントURLは発行されませんでした。
+このため、せっかく負荷対策でインスタンスを増やしても、自分でいちいち別にロードバランサーを用意し設定する必要が出てきてしまいます。</p>
+
+<h3>プライベートレジストリに対応していない</h3>
+
+<p>現状では<a href="https://hub.docker.com/">Docker Hub</a>で公開されているDocker Imageしか利用できません。
+従って、なんらかのクローズドなプロジェクトで利用するのは非常に困難となります。</p>
+
+<h3>足回りがロックインされてしまう</h3>
+
+<p>ノードについて気を回す必要がない、という利点の裏返しとなりますが、自分でIaaSベンダーやサーバの選定ができません。
+Docker Cloudの場合は各種IaaSやオンプレミスへの対応ができているので、この辺りはユースケース次第かと思います。</p>
+
+<p>もしサーバレスアーキテクチャに寄せるのであれば、Arukasのほうが向いているかもしれないですね。</p>
+
+<h3>CLIやAPIが存在しない</h3>
+
+<p>CLIやAPIが存在しないということは、自動化することが非常に困難であるということでもあります。</p>
+
+<p>APIだけでも出てくるとだいぶ利便性が高くなりそうですね。</p>
+
+<h3>ドキュメンテーションが貧弱</h3>
+
+<p>ダッシュボードについての記述があるのみです。
+まだまだ機能が少ないので現時点では問題にならないのですが、上述したような機能が追加されたときにドキュメンテーションもあわせて強化されることを期待したいところです。</p>
+
+<h2>まとめ</h2>
+
+<p>国産コンテナプラットフォームの<a href="http://arukas.io/">Arukas</a>を紹介しました。
+まだまだベータ期間ですので、機能面での見劣りが若干ありますが、サーバレスで使えて動作が大変高速、しかも簡単ですので、今後の動きに期待できそうです。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/arukas.html">arukas</a></li>
+      <li><a href="/tag/docker.html">docker</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2016-02-13 22:49</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2016-02-14 10:13</dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

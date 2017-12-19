@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+以前作ったplenvsetupというツールについて簡単なテストをかいた話（もしくはTravisでshell scriptをテストする方法についての試行錯誤） | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-05-31-11-47-33.html">Otogiri-0.11 has been released</a>
+    <li class="next">next: <a href="/entry/2014-06-05-15-30-54.html">Vector::QRCode::EPS+cartonの深淵から脱出した話</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>以前作ったplenvsetupというツールについて簡単なテストをかいた話（もしくはTravisでshell scriptをテストする方法についての試行錯誤）</h1>
+
+<p><a href="http://yellowstore.blogspot.jp/2013/05/plenvrbenv.html">相当前の話</a>ではあるけど、ぼくはplenvsetupというツールを作って公開している。</p>
+
+<p>これが何をするものなのかについては上記のブログ（ぼくの旧ブログ）を参照していただくとして、ツールとしては幸せな事に、<a href="http://perl-entrance.org/">Perl入学式</a>の環境構築ツールとしてご利用いただいている。大変ありがたい話である。</p>
+
+<h2>Perl入学式での失敗</h2>
+
+<p>が、実は先日このPerl入学式で、このplenvsetupがうまく動かない、ということがあった。tsucchiさんをはじめとした様々な方のご協力を受け調査した結果、bashで実行すべきところが、shで実行されてしまっていたことがわかった。</p>
+
+<p>直接的な原因としては、Perl入学式のドキュメントがそうなっていたため、ということではあるのだが、そもそも、plenvsetup公開当時のブログエントリ上でもそのようにかかれており、公開当初はshでも動作していたが、いくつかのアップデートを経ているうちに、bashないしzshを要求するようになっていたのだ。</p>
+
+<h2>「そうだ、テストをかこう！」</h2>
+
+<p>これはテストがないことに幾分原因があると判断し、急遽plenvsetupのgitレポジトリを<a href="https://github.com/ytnobody/plenvsetup">githubに用意</a>（それまでは何とgistしかなかった）。travis-ciでテストを行うべく、.travis.ymlの作成に取りかかった。</p>
+
+<p>が、plenvsetupはshell scriptである。一体どうやってtravisでテストを実行させるのか・・・</p>
+
+<h2>野蛮な方法で切り抜ける</h2>
+
+<p>数分考えたのちに導き出された回答、それは「.travis.yml内でscriptを定義して、死ななければtest成功」という非常に野蛮な方法であった。</p>
+
+<p>.travis.ymlでは、scriptという項目を配列として指定でき、それぞれの項目ごとにexit値を見ている。つまりここでアサーションが行われると捉えることができる。そして、テスト単位を各shell環境ごとに分離し、結果として以下のような.travis.ymlが出来上がった。</p>
+
+<pre><code>language: perl
+perl:
+   - 5.12
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq zsh
+
+script:
+  - SHELL=$(which bash) bash test/01_bash.t
+  - SHELL=$(which zsh) zsh test/02_zsh.t
+</code></pre>
+
+<p>見るからに野蛮である。が、僕にはその時、この方法以外は思いつかなかった。</p>
+
+<p>もしモアベターな方法があれば、ぜひ<a href="http://twitter.com/ytnobody">@ytnobody</a>までメンションください。</p>
+
+<h2>すこし調べてみた</h2>
+
+<p><a href="http://stackoverflow.com/questions/20449707/using-travis-ci-for-testing-on-unix-shell-scripts">http://stackoverflow.com/questions/20449707/using-travis-ci-for-testing-on-unix-shell-scripts</a></p>
+
+<p>どうやらlanguageのところをbashとかすればいいらしい。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/shell.html">shell</a></li>
+      <li><a href="/tag/test.html">test</a></li>
+      <li><a href="/tag/travis-ci.html">travis-ci</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-06-03 15:43</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-06-03 16:01</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

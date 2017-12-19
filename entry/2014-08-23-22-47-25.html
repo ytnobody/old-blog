@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Perl::Lintのviolationsを見やすく整形して表示するツール等をかいてみた | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-07-30-14-26-23.html">仲間を尊重するということ</a>
+    <li class="next">next: <a href="/entry/2014-08-29-17-58-00.html">YAPC::Asia Tokyo 2014 day1 に二日酔いで参加した</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Perl::Lintのviolationsを見やすく整形して表示するツール等をかいてみた</h1>
+
+<p>ここ最近、<a href="https://github.com/moznion">moznion</a>のつくっている<a href="https://metacpan.org/pod/release/MOZNION/Perl-Lint-0.01_01/lib/Perl/Lint.pm">Perl::Lint</a>を触っている。</p>
+
+<p>Perl::Lintという物について端的に言ってしまうと、Perlでかかれたコードの中からダメな部分(=violationsという)を指摘してくれる機能を提供する「お節介焼きライブラリ」なんだけど、このツールの解析結果をいい感じに表示してくれる「レポーター」と呼べるようなものが存在しなかったので、つくってみた。-> <a href="https://github.com/ytnobody/Perl-Lint-Reporter">Perl::Lint::Reporter</a></p>
+
+<h2>Perl::Lint::Reporter 使い方等</h2>
+
+<p>使い方は至って簡単。Perl::Lintで解析した結果をreport_violations()という関数に食わせるだけ。</p>
+
+<pre><code>use Perl::Lint qw/lint/;
+use Perl::Lint::Reporter;
+
+my $violations = lint(['/path/to/yourcode.pl', '/path/to/othercode.pl', ...]);
+report_violations($violations);
+</code></pre>
+
+<p>出力例はこんな感じ(<a href="https://camo.githubusercontent.com/703025a736dca9e2687136ab4921756ab7cb6314/687474703a2f2f692e6779617a6f2e636f6d2f32333036386262393934326666396139373030663062636336666231346366622e706e67">大きい画像はこちら</a>)</p>
+
+<p><img src="https://camo.githubusercontent.com/703025a736dca9e2687136ab4921756ab7cb6314/687474703a2f2f692e6779617a6f2e636f6d2f32333036386262393934326666396139373030663062636336666231346366622e706e67" alt="Perl-Lint-Reporter" /></p>
+
+<p>なお、Perl::Lintと同じ目的のライブラリである（というかこっちが本家だった）Perl::Criticについても「レポーター」がパッと見つけられなかったので、書いてみた。-> <a href="https://github.com/ytnobody/Perl-Critic-Reporter">Perl::Critic::Reporter</a></p>
+
+<p>こっちも使い方はほぼ一緒で、Perl::Criticの解析結果をreport_critic()関数に食わせるだけ。（ほぼ一緒なのでコード例はリンク先を参照のこと）</p>
+
+<h2>Perl::LintとPerl::Criticの解析結果に関する差分レポートがほしい！！！</h2>
+
+<p>そして、Perl::LintはポリシーについてPerl::Criticと挙動が異なる部分があるらしい。そういった部分を簡単に発見できるように、violationsの差分をレポートしてくれるやつも書いてみた。-> <a href="https://github.com/ytnobody/Perl-Lint-Reporter-DiffWithCritic">Perl::Lint::Reporter::DiffWithCritic</a></p>
+
+<p>これも使い方は簡単で、Perl::Lintの解析結果をreport_violations_diff()に食わせるだけ。</p>
+
+<p>出力例(<a href="https://camo.githubusercontent.com/0ddd9a89d9af61939158804ab30e725e8a2f171f/687474703a2f2f692e6779617a6f2e636f6d2f36313662383465386437653962396265616630343565616335393138613266372e706e67">大きい画像はこちら</a>)。</p>
+
+<p><img src="https://camo.githubusercontent.com/0ddd9a89d9af61939158804ab30e725e8a2f171f/687474703a2f2f692e6779617a6f2e636f6d2f36313662383465386437653962396265616630343565616335393138613266372e706e67" alt="Perl-Lint-Reporter-DiffWithCritic" /></p>
+
+<p>もしPerl::Lintを使って何かを解析したいと思ったとき、これらのツールはきっと役に立つんじゃないかと思う。役に立つといいな。</p>
+
+<p>とくにPerl::Lint::Reporter::DiffWithCriticについては、Perl::Lintの解析性能改善にも一役買えるはず。よかったらつかってみてください。とはいえ、今のところどれもgithub止まりモジュールだったりするのですけど。</p>
+
+<p>ちなみにPerl::Lintには<a href="http://perl-lint.moznion.net/">playground</a>なんかもあるみたいで、ちょい試したい向きには丁度良いのではないでしょうか。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/Perl-Lint.html">Perl-Lint</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-08-23 23:28</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-08-23 23:28</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

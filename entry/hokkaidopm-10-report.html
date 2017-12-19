@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Hokkaido.pm #10 に行ってきたのでメモを晒したり感想をかいてみるよ！ | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/begin.html">ytnobodyの新しいブログですよー</a>
+    <li class="next">next: <a href="/entry/2013-09-06-16-31-29.html">MySQLに放り込んだXMLのネストが深すぎるとつらいという話</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Hokkaido.pm #10 に行ってきたのでメモを晒したり感想をかいてみるよ！</h1>
+
+<p>8/31(土)に開催された<a href="http://hokkaido.pm.org/event/hokkaidopm10.html">Hokkaido.pm #10</a> に参加してきました！！</p>
+
+<p>以前より参加したいなーという思いはあったのですがなかなか都合が付かず、これまではずるずると参加せずじまいでした。
+今回関東から実際に参加してみて、「またいきたい!」と思わせるものでしたので、道内にお住まいのPerlに興味がある方はぜひ、次回以降参加するとよいと思います。</p>
+
+<p>今回僕が発表に使ったスライドは<a href="http://ytnobody.net/impress/hokkaidopm-10">こちら</a>。</p>
+
+<p>懇親会では極端に飲みすぎて、気がついたら北広島の駅にいた、という大失態をやらかしたり、一緒に飲んでいたメタルなCPAN Authorの@itrysdさんの一言にじんわり来たり、onちゃんグッズを忘れて着払いで送っていただく等のイベント(?)も発生し、とても心に残る思い出となりました！</p>
+
+<p>あと、こういう勉強会に参加するときはYAPCレポーターだったときのくせもあり、自分なりにザクザクッとしたメモをとっているのですが、折角なのでこれもほぼそのまま載せておきます。</p>
+
+<h2>レポートメモ</h2>
+
+<h3>@jamadam - フォームバリデーションを自動化してみた</h3>
+
+<pre><code> field != validation rule
+ formのDOM構造からValidation Ruleを自動化
+ Mojolicious::Plugin::FormValidatorLazy
+ HTML5で＜input pattern="\d\d\d"＞のようにパターン指定したり、＜input type="number"＞のような型指定をしたりできる
+ 問題点など
+     JSバリバリのアプリでは役に立たない
+     schemaの生成が高負荷
+     Web Application Firewallという分野で既出か。
+     session fixationの問題があるとの指摘がありました
+</code></pre>
+
+<h3>@akiym - Perl meets ******* (Leap Motion)</h3>
+
+<pre><code> 最近作ってるもの
+     akictf - セキュリティ系のクイズを提供する
+ Leap Motion
+     次世代デバイス
+     手のひら、細かく認識
+     WebSocketでデータを取ってこれる
+ Device::Leap
+     とりあえずかいたっぽい
+     モーションを取れない
+     いけてない
+ AnyEvent::LeapMotion をつくった
+ OS Xでマウスを動かすモジュール Cocoa::GuiTestを作った。まだ不安定。
+ まとめ
+     PerlからLeap Motion
+     Cocoaモジュール、まだすくない。
+ github止まりモジュール5選
+     Text::PicoTemplate - 変数のみサポート。置換よりは柔軟に。
+     Text::Chinese::Numelize - 漢数字を数字に。正規表現で。
+     Cocoa::NetworkChange - ネットワークが変更された時のトリガを提供。(OSX用)
+     Iroh - Yet Another Teng (Iroha からaを引いた)
+     WWW::FC2::Download::Video - www::なんとか::downloadシリーズ。うふふ動画ほしいれすw
+</code></pre>
+
+<h3>@xtetsuji - イベント駆動とノンブロッキング</h3>
+
+<pre><code> 後輩とAnyEvent::IRC::ClientとTwiggyの勉強をしていたとき、AE::timerなどとも連携してイベント駆動を実感。
+ 後輩「今作っているIRCBotが時折応答しなくなるんですが」
+ ブロッキングとかノンブロッキングとかなんだ？ - こっそりググる
+ i/oブロッキング - ブロッキングの代表例、I/O。
+ 色々実験。AE::timerのcbでsleep 10; など。
+ AnyEvent.pmを読む
+     AnyEvent::Loop にwhile 1; があるはず・・・
+         sub run { one_event while 1; }
+     timesシステムコールをなるべく抑えるっぽい絶妙な仕組み
+     効率化なのか、すごいリファレンス
+     ビット演算
+     読んで理解すれば充実感にひたれる？
+ ここまでのまとめ
+     イベント駆動＝並列処理を実現するための手法の一つ
+     他にはfork, threadなど
+ イベント駆動ウェブサーバ
+     C10K問題への対処
+     NginxやPerl製各種webサーバの登場
+     ApacheもEvent MPMを2.4から正式リリース。 - まだパフォーマンスがそこまで出ていない
+ Apache Prefork MPMの頭打ち問題
+ Nginx HTTP Perl Module
+     mod_perl 1 の書法の影響が見られる
+     HTTPに特化したもの
+ N/W I/Oでとめないように気をつけるのは昨今の他のwebサーバと同様。 -&gt; job queueへ依頼。
+ ModPerl::PSGI - mod_perl2でかかれたPSGI実装
+ URIのパースコストは結構高いケースがあったりする
+</code></pre>
+
+<h3>@nekokak - Not Tech Talk 最近の取り組み</h3>
+
+<pre><code> 前はエディタ、今はgmailとスプレッドシートがお友達
+ スラングまじりの英語の学習
+ fxxk fxxk ばっかかいてたら新卒に怒られる。
+ 共通技術基盤
+     新規事業とかやって色々作る
+     やっぱみんな同じとこで困っておなじように問題解決
+     自分のチームで共通技術基盤チームをつくった
+         自分たちで解決した問題を宣伝
+         いろんなとこに首突っ込んで宣伝
+         遺書にやってくれそうな別部署捕まえてすすめていく
+         社内鉄区トークとかやってどういう取り組みをしているか宣伝
+     そして生まれた - Baran (バラン)
+         DeNA内のInfraに特化した内部共通モジュール群になった
+         会社依存のない物はCPANモジュールにしたい(Baran::PushNotification など)
+ 新しい取り組み
+     新規PJを始めるときは必ず新技術を取り入れるようにしてる
+         nginx
+         JSON-RPC Server Framework(Shiva)
+         Auth Proxy Server(Vishnu)
+         SOA化の推進
+         JSON-RPCのmethod単位でplackup -&gt; リクエスト数がメソッドによって異なるので用途ごとにスケールできるように
+ マネージャになるときに思ったこと
+     コードかきたくなることもあるが、本気でかいたらまけ
+     一人で上げられる成果はたかが知れてる
+ github止まりモジュール
+     Komainu - fluentdにおきかえられt
+     Class::Anon
+     Data::Koyomi - NASAのデータAPI（月の運行データ）が必要
+ PagerDuty
+     アラート用のサービス。アラートメールを受けるようにしといて、誰も反応しなければ優先順に基づき電話がかかってくる。
+</code></pre>
+
+<h3>@tokuhirom - CPANと私</h3>
+
+<pre><code> 立場が変われば技術も変わる
+     受託、納期・・・
+ CPANモジュールの選び方
+     他人のコードのおかげで動かないことは嫌い
+ モジュールの客観的な選別手段
+     更新日を見る
+     CPANTestersの結果を見る
+     t/が寂しいモジュールは使わない
+     バグトラッカーへの登録数をみる
+ 作者による選別
+     CPAN Authorsは個性にあふれすぎだが、くせがわかると割と何とかなる。
+         ＊＊＊は高速
+         ＊＊＊はテスト動かさない、インタフェース重厚
+         ＊＊＊さんのモジュールは実際には使ってない
+         ＊＊＊さんだから非互換の変更をする
+         etc., etc...
+     信頼の人たち
+         gfx, dgolden, miyagawa, rjbs, makamaka ...
+ 速度
+     メモリ消費量
+ 後方互換性
+     最重要
+     動いてたコードが動かなくなるのはすごく嫌
+ 結局他人にきくのが一番良い
+     Twitter, Lingr, などなど。
+ 最終的には自分でメンテしてもいいな、というものを選ぶ。
+ 補足
+     流行り廃り
+     アーリーアダプターの穴掘りに付き合う必要なし
+ 実例
+     アプリケーションサーバ
+         Starlet good
+         Twiggy good
+         Starman catalystのサーバをplack向けにしたもの、Net::Serverベース。中身が追えない。
+         FCGI bad - 中途半端でくせがある。
+         CGI - まれに使う
+         mod_perl - apacheつかってない
+     オブジェクト指向関連
+         Class::Accessor::Lite good
+         Class::Accessor::Fast 
+         Mouse good
+         Moo 微妙だけどCPANモジュールかくのに使う。海外ではMouse嫌われてるようなので、Mooだとよい
+         Moose bad
+         AnyMoose bad
+         今後はMOP::Redux
+     CPAN インストーラ
+         cpanm good
+         cpanshell bad
+         cpanplus bad
+     ORM
+         Teng good
+         DBIx::Skinny コードが嫌い
+         DBIx::Class Mooになって素直にメンテされてるが、使う理由が無い。どこでクエリが発行されてるのかわからなくなる
+         Class::DBI bad
+     日付関連
+         Time::Piece good
+         DateTime bad おもい。日付の計算の挙動がだめ
+     JSON
+         JSON::PP good 十分な速度
+         JSON::XS good
+         JSON.pm つかうなら上記いずれかを直接。
+         Cpanel::JSON bad
+         JSON::Any bad
+ CPANモジュールの使い方
+     plenv, cpanm, carton
+     Linuxならsystem perlを使っても良い、が、-Dusethreadsなので速度遅い
+     Perl-Build
+         perl5 builder/installer
+     PLENV_VERSION環境変数でもversion指定可能
+ cpanmのはなし
+     plenv install-cpanm
+     インストールしなくても使える
+     cpan とか perl -MCPAN -eshellとかやめたほうがいい
+     cpanm -n Carton
+ cartonのはなし
+     cpanfileに依存関係をかいておく
+     carton installで一通り入ってくれる。
+     cpanfile.snapshotを元にlocal/を復元できる
+ github止まりモジュール
+     O/R Mapper-resultset
+     PVIP Perl6パーサ
+     Seis - Pwel5 is DSL for CPAN... Another DSL ? PERL6!
+         Perl6 to Perl5 transpiler
+         like coffee script
+         内部的にautobox使っている。autoboxはパフォーマンス面でみても悪くない
+     seis の demo
+</code></pre>
+
+<h3>LT</h3>
+
+<pre><code> @aloelight - Plack::Middleware::Assets::RailsLike
+
+ @techno_neko - PDLをつかってみよう
+
+ @ytnobody - 天気関連のものやXML関連のものについて
+
+ @irtysd - Guiter::Scale のはなし
+</code></pre>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/report.html">report</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2013-09-04 15:26</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2013-09-22 14:21</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

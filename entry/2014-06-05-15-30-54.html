@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Vector::QRCode::EPS+cartonの深淵から脱出した話 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-06-03-15-18-29.html">以前作ったplenvsetupというツールについて簡単なテストをかいた話（もしくはTravisでshell scriptをテストする方法についての試行錯誤）</a>
+    <li class="next">next: <a href="/entry/2014-06-06-13-07-29.html">YAPC::Asia Tokyo 2014 でOtogiriのお話をするかもしれないです</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Vector::QRCode::EPS+cartonの深淵から脱出した話</h1>
+
+<p>以前、EPS形式でQRコードを出力するPerlモジュール<a href="http://metacpan.org/release/Vector-QRCode-EPS">Vector::QRCode::EPS</a>を公開したが、これを利用したアプリの依存関係をcarton install --deploymentで解決しようとした際、どういうわけかTest::Simple 0.18という低いバージョンが強制的に入って来てしまうという状況に陥った。</p>
+
+<p>色々調べていると、<a href="http://shibayu36.hatenablog.com/entry/2013/10/15/220717">正しくインストールされているモジュールがcarton checkに怒られる時 - $shibayu36-&gt;blog;</a>という記事を見つけ、まったく同じような状況にあることを確認。</p>
+
+<h2>原因</h2>
+
+<p>cpanfile.snapshotをよーく見てみると、以下のような箇所を発見。</p>
+
+<pre><code>  PostScript-Simple-0.07
+    pathname: M/MC/MCNEWTON/PostScript-Simple-0.07.tar.gz
+     provides:
+      PostScript::Simple 0.07
+      PostScript::Simple::EPS 0.01
+      Test::More 0.18
+      Test::Simple 0.18
+      Test::Utils 0.02
+    requirements:
+      ExtUtils::MakeMaker 0
+</code></pre>
+
+<p>察しの良い方はもう理解したかもしれないが、Vector::QRCode::EPSが依存してる<a href="http://metacpan.org/release/PostScript-Simple">PostScript-Simple</a>が、Test::MoreをはじめとしたTest系モジュールを「なぜか」内包・提供していることになっており、結果的にこいつが内包しているTest::SimpleやらTest::Moreやらがインストールされてしまった、ということらしい。</p>
+
+<h2>付け焼き刃の対策</h2>
+
+<p>とりあえずアプリケーションをデプロイするんだ！というだけであれば、cpanfile.snapshotから、PostScript-Simpleが提供していることになっているTest::MoreなどのTest系モジュールの行を削除すれば、carton install --deployment で正しいバージョンのTest::Moreなどがインストールされる。</p>
+
+<pre><code>  PostScript-Simple-0.07
+    pathname: M/MC/MCNEWTON/PostScript-Simple-0.07.tar.gz
+     provides:
+      PostScript::Simple 0.07
+      PostScript::Simple::EPS 0.01
+    requirements:
+      ExtUtils::MakeMaker 0
+</code></pre>
+
+<p>こんな感じ。</p>
+
+<h2>PostScript-Simple のどこがヤバいか</h2>
+
+<p>さて、PostScript-Simpleがおかしいということであれば、実際どこがマズいか気になる。とはいえ、いくら僕でももうすでにこの時点で何が悪いのか大体見当が付いていた。テストだ。</p>
+
+<p>実際PostScript-Simpleのtディレクトリをみてみると、以下のような具合になっているのがわかる。</p>
+
+<pre><code>t/
+├── 01base.t
+├── 02text.t
+├── 03funcs.t
+├── 10file.t
+├── 11file.t
+├── 12file.t
+├── 99cleanup.t
+└── lib
+    └── Test
+        ├── More.pm
+        ├── Simple.pm
+        └── Utils.pm
+</code></pre>
+
+<p>もうこの時点で非常にマズいのがよくわかるのだが、t/lib/Test/More.pm などが存在しており、かつ、これらのクラスファイルは</p>
+
+<pre><code>$ head -n 1 t/lib/Test/*.pm 
+==&gt; t/lib/Test/More.pm &lt;==
+package Test::More;
+
+==&gt; t/lib/Test/Simple.pm &lt;==
+package Test::Simple;
+
+==&gt; t/lib/Test/Utils.pm &lt;==
+package Test::Utils;
+</code></pre>
+
+<p>このようにCPANやcartonにindexされるように定義されている。</p>
+
+<h2>PostScript-Simpleの作者にコンタクトを試みるも・・・</h2>
+
+<p>さて、このPostScript-Simpleだが、最終更新が2006年と、非常に長い間メンテナンスが行われておらず、また、<a href="https://rt.cpan.org/Public/Dist/Display.html?Name=PostScript-Simple">issueが9年間も放置されていたり</a>と、なかなか筋金入りの放置モジュールだった模様。もっとよく確認して採用すべきだったと後悔したものの、既に遅い。</p>
+
+<p>とりあえずtwitterに作者とおもわれるアカウントがあったので、念のため<a href="https://twitter.com/ytnobody/status/473769371886563329">最悪の英語力で連絡</a><a href="https://twitter.com/ytnobody/status/473773018230300672">してみる</a>。が、これはスルーされてしまった。まあ「わけのわからん英語で何か言ってるな～、放置確定！」とでも思われたのかもしれない。</p>
+
+<h2>Lingrで相談</h2>
+
+<p>こういうときのためのLingrだろう、ということで質問してみると、「つかわなければいいです」とバッサリ。まあそりゃそうなんだけど、実際のところそうも行かないので、「まあアレなのは承知の上です」と断りを入れてみた。すると、「他のモジュール使うなりforkするといいでしょ」という話だった。</p>
+
+<p>実は最初は見落としていたけど、PostScript-SimpleのライセンスはGPLv2なので、その範囲であればforkはしてよいということになる。</p>
+
+<p>かくして、僕はこの「ワイルド」なモジュールをforkすることにした。</p>
+
+<h2>PostScript-Easy</h2>
+
+<p>とりあえずPostScript-Simpleを丸パクリして、名前をPostScript-Easyに変えてテストを通してみたら、問題なく通った。</p>
+
+<p>次にminil migrateをした。これは、依存関係を記述するのにわざわざExtUtils::MakeMakerの流儀に則るのが億劫だったのと、後々のメンテナンス性向上のためである。</p>
+
+<p>そして、あの忌々しい t/lib/Test をディレクトリごと削除し、代わりにrequires 'Test::More'をcpanfileに追記した。</p>
+
+<p>最後に、Travisでテストをさせるようにしてみた。（その他、細かいドキュメンテーションの修正なども行った。）</p>
+
+<p>その結果出来上がったのが<a href="https://github.com/ytnobody/PostScript-Easy">こちら</a>。</p>
+
+<h2>Vector::QRCode::EPS も PostScript::Easy に乗り換えた</h2>
+
+<p>一通り問題がなさそうだったので、<a href="https://metacpan.org/release/PostScript-Easy">PostScript::Easyをshipit</a>し、Vector::QRCode::EPSの依存もPostScript::Easyに鞍替えして、<a href="https://metacpan.org/release/Vector-QRCode-EPS">こちらもshipit</a>した。</p>
+
+<p><a href="https://rt.cpan.org/Public/Dist/Display.html?Name=PostScript-Simple">PostScript::Simpleのissue</a>もそのまま継承している状況なので、今後はこれらを潰し込む作業をする予定です。</p>
+
+<h2>追記: PostScript::Easyの今後について</h2>
+
+<p>先ほどgithub上でご教示いただいたのだが、この様な場合、まず作者へのコンタクトをとってみて、2週間を目安に待ち、それでもレスポンスがなければ、CPANに連絡をするというのが正式な方法？であるらしい。</p>
+
+<p>とくにPostScript::EasyはPostScript::Simpleとは別の新しい機能を実装する予定が無い（そういったissueがあれば考慮するけど）ので、今回の話においては、本来であればco-maintなりの権限さえもらえれば解決する話である。</p>
+
+<p>なので、今後ぼくがPostScript::Simpleをメンテナンスできる状況がでてきたら、PostScript::Easyはその役目を終え、CPANからも削除するつもりである。</p>
+
+<p>あるいは、メンテナが正常に機能し始めた段階で、削除を考慮するだろう。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-06-05 16:35</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-06-05 18:49</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+DockerにRijiを乗っけてみた | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-09-29-13-15-32.html">ISUCON 2014 初参加。予選１日目で死に姿を晒すの巻</a>
+    <li class="next">next: <a href="/entry/2014-10-23-18-58-39.html">tutumを使ってserviceをdigital oceanに乗せてみた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>DockerにRijiを乗っけてみた</h1>
+
+<p><a href="https://registry.hub.docker.com/u/ytnobody/docker-riji/">https://registry.hub.docker.com/u/ytnobody/docker-riji/</a></p>
+
+<p>とうとう僕もdockerhubデビューです。過去、<a href="http://blog.ytnobody.net/entry/2014-06-16-18-14-18.html">炎上案件ともボヤ騒ぎとも取れるようなエントリ</a>を公開し、それはそれは嗤い物にされるような内容でした。</p>
+
+<p>そんな僕ですが、今あなたが見ているこのブログ、dockerで稼働しております。ええ、知の高速道路はありませんでしたが、知の一般道をひた走ってここまで来ました。</p>
+
+<p>さて、このブログは<a href="http://search.cpan.org/~songmu/Riji-0.1.3/lib/Riji.pm">Riji</a>というブログツールが稼働しております。これは非常にシンプルなツールですが、細かい説明は<a href="http://songmu.github.io/p5-Riji/blog/">このあたり</a>を見ていただくと良いと思います。</p>
+
+<h2>Rijiをdockerで稼働させたらどうだろうか</h2>
+
+<p>このように考えたのは、Docker as a Service(DaaS) というものを使ってみたかったからなんですが、じゃあ何を稼働させようか・・・と考えた時に、「ああ、俺のブログでいいんじゃね？」という話になったわけですね。</p>
+
+<p>で、実際にDaaSにRijiを載せるためにはDockerfileを書くのがいいだろうってことになり、最終的に「属人性みたいなの」を全部取っ払おうってことを想像したら、結果的にytnobody/docker-rijiをdockerhubにpushするのがよさそうという判断だったんです。</p>
+
+<h2>大まかな使い方</h2>
+
+<ol>
+<li>riji setup したディレクトリ構成をそのままどこかのgitレポジトリにpushしておく</li>
+<li>docker run -e BLOG_REPO_URL=ほげほげ -p 3650:3650 -d ytnobody/docker-riji みたいに実行する</li>
+</ol>
+
+
+<p>2 の「ほげほげ」のところには、1で作ったレポジトリのURLを指定します。この時、通常のgit://みたいな型式でやろうとすると、認証周りで死ぬはずなので、鍵をおくように手配するとか、https://user:pass@... 型式で頑張るかしましょう。</p>
+
+<h2>まとめ</h2>
+
+<p>たぶん人並みにdockerを触れるようになったので、頑張ってみたというお話でした。</p>
+
+<p>そのうち、このブログのデプロイ先や手法についても書きますね！</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/docker.html">docker</a></li>
+      <li><a href="/tag/riji.html">riji</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-10-22 16:41</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-10-22 16:41</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

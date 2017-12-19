@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Ukigumo入りのDocker Imageが欲しかったので作りました | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2015-10-15-20-45-00.html">改めてマネジメントする側になってわかったこと</a>
+    <li class="next">next: <a href="/entry/2015-11-19-20-38-00.html">なぜなにTutum - いまTutumをオススメする12の理由</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Ukigumo入りのDocker Imageが欲しかったので作りました</h1>
+
+<ul>
+<li><a href="https://hub.docker.com/r/ytnobody/ukigumo-ci/">https://hub.docker.com/r/ytnobody/ukigumo-ci/</a></li>
+<li><a href="https://github.com/ytnobody/docker-ukigumo-ci">https://github.com/ytnobody/docker-ukigumo-ci</a></li>
+</ul>
+
+
+<p>タイトルの通りです。立ち上げ方は以下の通り。</p>
+
+<pre><code>$ sudo docker run -it -p 2828:2828 -p 2829:2829 -v /opt/ukigumo:/opt/ukigumo ytnobody/ukigumo-ci
+</code></pre>
+
+<p>こんな感じで立ち上げてやると、 <a href="http://moznion.hatenadiary.com/entry/2014/05/02/181147">ここでmoznionさんが書いているような使い方</a>ができるようになります。</p>
+
+<p>ちなみに、<code>.ukigumo.yml</code>で</p>
+
+<pre><code>before_install:
+    - "plenv local 5.18"
+</code></pre>
+
+<p>みたいにすると、テストで使うPerlのバージョンを切り替えることができます。現時点で対応しているバージョンは以下の通り。</p>
+
+<ul>
+<li>5.20 (perl-5.20.3)</li>
+<li>5.18 (perl-5.18.4)</li>
+<li>5.16 (perl-5.16.3)</li>
+<li>5.14 (perl-5.14.4)</li>
+<li>5.12 (perl-5.12.5)</li>
+<li>5.10 (perl-5.10.1)</li>
+</ul>
+
+
+<p>ただし、イメージのサイズは1.6GBくらいあるので、<code>docker pull</code>の際には考慮する必要があります。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/docker.html">docker</a></li>
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/ukigumo.html">ukigumo</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2015-10-22 20:12</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2015-10-22 20:20</dd>
+        <dt class="author">by</dt>
+        <dd class="author">satoshi azuma</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

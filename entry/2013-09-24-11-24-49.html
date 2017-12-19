@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+Dispatcher::Small というモジュールをリリースしました | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2013-09-22-13-21-47.html">YAPC::Asia Tokyo 2013で本編トークしませんでした</a>
+    <li class="next">next: <a href="/entry/2013-11-18-15-35-29.html">Plack::Response::AutoEncode を作ったらすぐに死んだので原因を書き留めておく</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>Dispatcher::Small というモジュールをリリースしました</h1>
+
+<p>昨日寝る前に、Dispatcher::SmallというモジュールをCPANにリリースしました。同じようなものにRouter::Simpleという超メジャーなモジュールがあるのですが、Dispatcher::Smallは、より低機能・より高速を目指してみました(つまりdispatcherとしての最低限の機能のみに特化)。</p>
+
+<p>おおまかな使い方は<a href="http://search.cpan.org/~yturtle/Dispatcher-Small-0.01/lib/Dispatcher/Small.pm">ドキュメント</a>を見ていただくとして、その性能差を比較してみました。</p>
+
+<p>結果は<a href="https://gist.github.com/ytnobody/6657962">こちら</a>。同じような仕事をさせて、10%くらい速くなる模様です。</p>
+
+<p>だいぶ低機能だし、インターフェースも正規表現にべったりなので、そういうのに抵抗のない向きにはいいんじゃないでしょうか。</p>
+
+<p>そのうち<a href="https://github.com/nephia/Nephia">Nephia</a>のプラグインとしても使えるようにする予定です。</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2013-09-24 11:43</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2013-09-24 11:55</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

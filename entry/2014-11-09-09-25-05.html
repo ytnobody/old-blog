@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+tutumでできるwebapp冗長化構成 | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-11-07-18-07-44.html">Docker + nginx + td-agent + bigqueryで構築するログ集計機能付きhttp-proxy</a>
+    <li class="next">next: <a href="/entry/2014-12-01-23-49-57.html">Google Cloud SQL を雑にMySQLの代用品として利用してみた</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>tutumでできるwebapp冗長化構成</h1>
+
+<p>サービスのリデプロイをするとき、単発のコンテナでサービスしてると、どうしてもダウンタイムが発生してしまいます。</p>
+
+<p>このブログは現在tutum + digital ocean + awsで運用されていて、webappコンテナが3つ稼働しています。つまり、冗長化構成がとられているんですね。</p>
+
+<p>webappの冗長化構成については、tutumのドキュメンテーションにもかいてある事項ではあるんですけど、このブログでも大まかな解説をします。</p>
+
+<h2>まずwebappサービスをつくろう</h2>
+
+<p><a href="http://blog.ytnobody.net/entry/2014-10-23-18-58-39.html">以前解説した手法</a>で、webappサービスを構築してください。</p>
+
+<p>この時、コンテナ数は2個以上にしたいですので、node portはdynamicのままにしておきましょう。そうしないと、同一コンテナ内でstatic port同士が衝突するという悲しい結果になってしまいます。</p>
+
+<h2>haproxyをつかおう</h2>
+
+<p>実はtutumにはhaproxyのdocker imageが既に用意されています。Launch Service＞jump start＞Proxiesに、<code>tutum/haproxy</code>があるので、こいつを使います。</p>
+
+<p>こいつでhaproxyサービスを立ち上げて、既に用意したサービスにリンクしてやると、リンク先サービスにあるコンテナのnode portを認識し、自動的に冗長化構成を構築してくれます。すごい！</p>
+
+<p>Node Portは、外からアクセスする際のポート番号を指定しましょう。コンテナ数は1つにしてくださいね。それから、haproxyサービスの立ち上げで必須なのが、リンク先サービスに前項で構築したサービスを指定することと、API RolesにFull Accessを指定すること。どちらが抜けてもhaproxy側のログにエラーが出てきますので、しっかり確認してください。</p>
+
+<p>これでサービスを起動すると、haproxyサービスのlogに、こんな感じのやつが出てくるはずです。</p>
+
+<pre><code>[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z global
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    maxconn 4096
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    pidfile /var/run/haproxy.pid
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    user haproxy
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    group haproxy
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    daemon
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z defaults
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    mode http
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    option redispatch
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    timeout connect 5000
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    timeout client 50000
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    timeout server 50000
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z frontend default_frontend
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    bind 0.0.0.0:80 
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    default_backend cluster
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z backend cluster
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    balance roundrobin
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    server cluster-49163 myapp-2.d78d27dd-ytnobody.node.tutum.io:49163
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    server cluster-49160 myapp-1.d78d27dd-ytnobody.node.tutum.io:49160
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z    server cluster-49160 myapp-3.d78d27dd-ytnobody.node.tutum.io:49164
+[myapp-haproxy-1] 2014-11-07T09:59:08.118084377Z 
+</code></pre>
+
+<p>ここまでできれば完成です。あとはhaproxyのNode Portめがけてリクエストを投げてみてください。webappが見えれば成功です。</p>
+
+<p>試しにhaproxyのlogを観察しながら、webappサービスのコンテナを増やしたり減らしたりして、リクエストを投げてみましょう。新しいコンテナが増えればhaproxyのbackendに自動的に追加され、コンテナが減ればbackendから自動的に外されますよね。このことから、冗長性の確保ができていることが確認できますね。</p>
+
+<h2>まとめ</h2>
+
+<p>手っ取り早く冗長化構成を立ち上げられるtutum/haproxyを紹介しました。</p>
+
+<p>これで、新しいコンテナを追加してから古いコンテナをterminateすることで、webappの入れ替えをノンストップで実施できますね！</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/tutum.html">tutum</a></li>
+      <li><a href="/tag/DaaS.html">DaaS</a></li>
+      <li><a href="/tag/haproxy.html">haproxy</a></li>
+      <li><a href="/tag/Docker.html">Docker</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-11-09 09:59</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-11-09 09:59</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/code-prettify/desert.css" rel="stylesheet">
+  <link href="/static/main.css" rel="stylesheet">
+  <title>
+なぜモジュールをgithub止まりにするのか | All Your Bugs Are Belong To Ass
+  </title>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <h1><a href="/">All Your Bugs Are Belong To Ass</a></h1>
+    </header>
+    <section>
+<nav>
+  <ul class="paginate">
+    <li class="prev">prev: <a href="/entry/2014-09-05-16-14-43.html">YAPC::Asia 2014 rejectconで発表してきた</a>
+    <li class="next">next: <a href="/entry/2014-09-29-13-15-32.html">ISUCON 2014 初参加。予選１日目で死に姿を晒すの巻</a>
+  </ul>
+</nav>
+
+<article>
+  <div class="entry">
+    <h1>なぜモジュールをgithub止まりにするのか</h1>
+
+<h2>『tl;dr』</h2>
+
+<p><a href="http://d.hatena.ne.jp/charsbar/20080606/1212704287">http://d.hatena.ne.jp/charsbar/20080606/1212704287</a></p>
+
+<h3>『tl;dr』は甘え</h3>
+
+<p>ここまで読んで意味がわかった方には、このポエムを読む必要などありません。読むだけ時間の無駄ですので、より創造的な活動に貴重な時間を費やしていただきたい。</p>
+
+<h2>え？どういうことｗ</h2>
+
+<p>はい、此処から先は、上記の意味が解らなかった方向けにお届けする、自戒風個人的見解というジャンルのポエムです。</p>
+
+<h3>CPANにモジュールをリリースするということ</h3>
+
+<p>思うに、少なくとも以下のような意味があるはずです。</p>
+
+<ol>
+<li><p>あなたの作ったモジュールが、cpanm一発でインストールできるようになる。</p>
+
+<p>これはそのままで、単に<code>cpanm Your::Module</code>などのようにすることでインストールできるようになることを指しています。</p>
+
+<p>あなたの業務で当該モジュールを利用していた場合、確かにこれは如何にも便利だと思います。</p></li>
+<li><p>あなたの作ったモジュールが、世界中のperlプログラマから「選択」される可能性が発生する。</p>
+
+<p>同時に、あなた以外の（あなたが全く知らない）perlプログラマが、あなたのモジュールを<code>cpanm Your::Module</code>としてインストールし、利用する可能性も発生します。</p></li>
+</ol>
+
+
+<h3>モジュールがどのように評されようとも、それはリリースした人間の責任である</h3>
+
+<p>例えば、webサービスへのリクエストを発行する機能がある場合。</p>
+
+<pre><code>anon. &gt; webサービスのラッパーモジュールがテストで実際にAPI叩くの渋すぎるな
+</code></pre>
+
+<p>このような評価をされてしまう可能性があります。</p>
+
+<p>また、</p>
+
+<pre><code>anon. &gt; 依存漏れがあるっぽい(けどほっとこう
+</code></pre>
+
+<p>というケースもあるでしょう。</p>
+
+<p>全部自分でやる必要もないのですが、やはり自らリリースしたモジュールについては、相応の責任をもつことが重要でしょう。</p>
+
+<h3>後続のperlプログラマがcpanを探索した時に与える影響を少し考えてみる</h3>
+
+<p>あるいは、もっと別の観点から考えると、</p>
+
+<pre><code>anon. &gt; CPANは慎み深い文化だからなー
+anon. &gt; さすがに劣化コピーが蔓延してしまうのは得がない
+</code></pre>
+
+<p>このような指摘が出てくるというものです。</p>
+
+<p>何故か。それは、「検索性」というキーワードで説明がつきます。同じような機能を持ったモジュールをリリースしたとあれば、まだCPANに慣れていない「利用者」からすると、どれを選べば良いのかわからなくなるというものです。</p>
+
+<p>もしあなたの作ったモジュールを「本気」で「選択」してほしいと思うのであれば、競合しているモジュールが完全に霞んでしまうほどの利点が必要だと思います。</p>
+
+<h3>「CPANでのモジュール公開」は手段であるべき</h3>
+
+<p>上述のような特性から、CPANへのアップロードは手段であるべきで、曲がり間違えても「目的」などになってはいけないわけです。</p>
+
+<p>この点については、僕自信も相当に自戒すべき点があるのですが、であればこそ、同じ過ちが起こることを食い止めたいと思い、このポエムを書いたわけです。</p>
+
+<h3>だからモジュールをgithub止まりにする</h3>
+
+<p>とはいえ、「じゃあ一体どういうものを上げればいいのよ？」という向きの言い分も解らないでもないです。</p>
+
+<p>完全に個人的な目安でしかないのですが、僕は最近、以下のような観点で2個以上該当するかどうかで、CPANへのアップロード可否を判断しています。</p>
+
+<ol>
+<li><p>機能面において、競合するモジュールが全く存在しない</p></li>
+<li><p>機能面において競合するモジュールがあるが、比較して、依存が少なく、性能も遥かに凌駕しており、コード量が圧倒的に少なく、見通しが良い。</p></li>
+<li><p>既に自分と自分以外の誰かが利用していて、評判もそこそこ以上であり、利用者からのフィードバックやPull Requestなどの助力が受けられる見込みがある。</p></li>
+<li><p>github上でのスターが20個以上である</p></li>
+</ol>
+
+
+<p>ちなみに項番4は未だに該当したことがありません。</p>
+
+<h3>まとめ</h3>
+
+<p>「tl;dr」で済ませてはいけないものが世の中にはあるんですよ！</p>
+
+  </div>
+
+  <aside class="tags">
+    <h2 class="tags">tags</h2>
+    <ul class="tags">
+      <li><a href="/tag/perl.html">perl</a></li>
+      <li><a href="/tag/b32.4OBZ3Y4CU7RYHIA.html">ポェム</a></li>
+    </ul>
+  </aside>
+  <aside class="share">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-via="ytnobody" data-lang="ja">ツイート</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  </aside>
+
+  <div class="meta-container">
+    <dl class="meta created">
+        <dt class="time">Created at</dt>
+        <dd class="time"><time>2014-09-17 13:00</time></dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+    <dl class="meta modified">
+        <dt class="time">Last modified at</dt>
+        <dd class="time">2014-09-17 13:12</dd>
+        <dt class="author">by</dt>
+        <dd class="author">ytnobody</dd>
+    </dl>
+  </div>
+</article>
+    </section>
+    <footer>
+      <p>author: <a href="http://ytnobody.net/">ytnobody</a></p>
+    </footer>
+  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    <script src="/static/code-prettify/run_prettify.js"></script>
+    <script>
+<!--
+$(function(){
+    $('pre > code').addClass('prettyprint');
+    $('img.photo').each(function(){
+        var div = $('<div class="center"></div>');
+        $(this).before(div);
+        $(this).css('cursor', 'pointer');
+        $(this).click(function(){
+            location.href = $(this).attr('src');
+        });
+        div.html(this);
+    });
+});
+-->
+    </script>
+  </div>
+</body>
+</html>
