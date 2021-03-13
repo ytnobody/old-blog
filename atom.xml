@@ -97,7 +97,7 @@
 
 <p>端的な例えですが、こんなことができるようになるわけですね。</p>
 
-<p><img src="./static/2016-08-15_10.06.21.jpg" alt="これは2011年のわいとんです・・・" /></p>
+<p><img src="/static/2016-08-15_10.06.21.jpg" alt="これは2011年のわいとんです・・・" /></p>
 
 <p>2011年の写真くらいしかさっくり入手できなかったのですが、頭の上に何か表示が出てますよね。その気になれば、年齢とか居住地とか出せそうではあるのですが、プライバシー保護の観点から、表示されて良い情報は非常に限定的かと思います。</p>
 
@@ -388,13 +388,13 @@ printf "name =&gt; %s \n%s\n", $person-&gt;{name}, $person-&gt;{userData};
 
 <p>やるぞーと言い出したのは<a href="https://twitter.com/lestrrat">lestrrat</a>さん。</p>
 
-<p><img class="photo" src="./static/bcon01.jpg"></p>
+<p><img class="photo" src="/static/bcon01.jpg"></p>
 
 <p>某アメコミヒーローっぽくキメるlestrratさん。写真からもやる気が伝わってくると思います。曰く、「ちゃんとブログ書いてね！」とのことでした。</p>
 
 <p>会場の準備を整えてくださった<a href="https://twitter.com/uzulla">uzulla</a>さん、企画しておいしいお肉をご馳走してくださったlestrratさん、有難うございました！</p>
 
-<p><img class="photo" src="./static/bcon02.jpg"></p>
+<p><img class="photo" src="/static/bcon02.jpg"></p>
 
 <p>なお、本エントリの写真はすべてuzullaさんの手によるものです。ありがたく拝借させていただきます。</p>
 
@@ -408,15 +408,15 @@ printf "name =&gt; %s \n%s\n", $person-&gt;{name}, $person-&gt;{userData};
 
 <p>この言葉通り、まさにひたすらにlestrratさんが肉を焼きまくって切りまくって振舞いまくるというものでした。いわばシュラスコ状態。</p>
 
-<p><img class="photo" src="./static/bcon12.jpg"></p>
+<p><img class="photo" src="/static/bcon12.jpg"></p>
 
 <p>こんな感じでlestrratさんが肉を焼き・・・</p>
 
-<p><img class="photo" src="./static/bcon13.jpg"></p>
+<p><img class="photo" src="/static/bcon13.jpg"></p>
 
 <p>こんな感じで提供されました。どうみてもシュラスコです。</p>
 
-<p><img class="photo" src="./static/bcon11.jpg"></p>
+<p><img class="photo" src="/static/bcon11.jpg"></p>
 
 <p>lestrratさんのchildプロセスくんを管理するuzulla氏。2nd childくん、お肉の食べすぎでお腹がパンパンになってました。</p>
 
@@ -438,7 +438,7 @@ printf "name =&gt; %s \n%s\n", $person-&gt;{name}, $person-&gt;{userData};
 
 <p>あとだれかオフグリッドな太陽光発電関連の技術トークしてくれないかなぁ・・・</p>
 
-<p><img class="photo" src="./static/bcon03.jpg"></p>
+<p><img class="photo" src="/static/bcon03.jpg"></p>
 
 <p>BBQ当日に集まった面々。この中からもきっと興味深いトークを発表してくれる人が出てくるはず！</p>
 ]]></content>
